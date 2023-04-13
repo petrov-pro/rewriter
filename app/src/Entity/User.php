@@ -30,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: APIToken::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $APITokens;
 
     public function __construct()

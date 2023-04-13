@@ -40,8 +40,17 @@ RUN mkdir -p /var/log/supervisor
 
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
 
+copy ./app /var/www/html
+
+
+
 # Назначаем рабочую директорию и пользователя www-data
 WORKDIR /var/www/html
+
+RUN composer clearcache \
+    && composer install \
+    && composer dumpautoload -o
+
 RUN chown -R www-data:www-data /var/www/html
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www
 
