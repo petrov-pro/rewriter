@@ -19,7 +19,6 @@ services:
     image: rabbitmq:3.9.7-management
     restart: always
     container_name: rabbitmq
-    restart: always
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
@@ -59,6 +58,8 @@ services:
       - ./app:/var/www/html
     environment:
       - APP_ENV=${APP_ENV}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     depends_on:
       - database
       - rabbitmq
@@ -70,7 +71,6 @@ services:
     # DockerHub mirror flaresolverr/flaresolverr:latest
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
-    restart: always
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
