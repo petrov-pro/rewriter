@@ -28,7 +28,7 @@
         "symfony/monolog-bundle": "*",
         "symfony/property-access": "6.2.*",
         "symfony/property-info": "6.2.*",
-        "symfony/runtime": "6.2.*",
+        "symfony/runtime": "*",
         "symfony/security-bundle": "6.2.*",
         "symfony/serializer": "6.2.*",
         "symfony/validator": "6.2.*",
