@@ -48,7 +48,7 @@ class TokenHandlerCommand extends Command
 
         $hash = md5($user->getEmail() . $this->saltWord);
         $apiToken = (new APIToken())->setIsValid(true)
-            ->setDate(new DateTime('now'))
+            ->setDate(new DateTime('now +1 year'))
             ->setToken($hash);
 
         $user->addAPIToken($apiToken)
