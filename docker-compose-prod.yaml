@@ -52,14 +52,9 @@ services:
     build:
       context: .
       dockerfile: php/Dockerfile.prod
-    user: "${UID}:${GID}"
     restart: always
-    volumes:
-      - ./app:/var/www/html
     environment:
       - APP_ENV=${APP_ENV}
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     depends_on:
       - database
       - rabbitmq

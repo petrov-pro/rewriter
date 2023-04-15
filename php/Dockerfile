@@ -42,8 +42,6 @@ COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
 
 COPY ./app /var/www/html
 
-
-
 # Назначаем рабочую директорию и пользователя www-data
 WORKDIR /var/www/html
 
