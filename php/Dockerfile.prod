@@ -38,7 +38,8 @@ WORKDIR /var/www/html
 
 RUN composer clearcache \
     && composer install \
-    && composer dumpautoload -o
+    && composer dumpautoload -o \
+    && composer dump-env prod
 
 
 RUN chown -R www-data:www-data /var/www/html

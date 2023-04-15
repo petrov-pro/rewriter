@@ -14,9 +14,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
         name: 'app:token-create',
-        description: 'Add a short description for your command',
+        description: 'Create token for user',
     )]
-class TokenHandlerCommand extends Command
+class TokenCreateCommand extends Command
 {
 
     public function __construct(
