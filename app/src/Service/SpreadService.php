@@ -12,7 +12,6 @@ class SpreadService implements HanlderMessageInterface
     public const TRANSPORT_NAME = 'spread';
 
     public function __construct(
-        private ContextService $contextService,
         private LoggerInterface $logger,
         private TagAwareCacheInterface $cache
     )
@@ -24,7 +23,7 @@ class SpreadService implements HanlderMessageInterface
     public function handle(ContextInterface $message): void
     {
 
-        $this->cache->invalidateTags(APIController::CACHE_TAG);
+        $this->cache->invalidateTags([APIController::CACHE_TAG]);
         $this->logger->info('Spread finished.');
     }
 }

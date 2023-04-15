@@ -3,6 +3,7 @@ version: "3.9"
 services:
   web:
     image: nginx
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -16,8 +17,8 @@ services:
       
   rabbitmq:
     image: rabbitmq:3.9.7-management
-    container_name: rabbitmq
     restart: always
+    container_name: rabbitmq
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
@@ -31,6 +32,7 @@ services:
       
   database:
     image: postgres:${POSTGRES_VERSION:-15}-alpine
+    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       # You should definitely change the password in production
@@ -49,12 +51,15 @@ services:
   php:
     build:
       context: .
-      dockerfile: php/Dockerfile
+      dockerfile: php/Dockerfile.prod
     user: "${UID}:${GID}"
+    restart: always
     volumes:
       - ./app:/var/www/html
     environment:
       - APP_ENV=${APP_ENV}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     depends_on:
       - database
       - rabbitmq
@@ -79,6 +84,7 @@ services:
 
   redis:
     image: redis:6.2.6-alpine
+    restart: always
     ports:
       - "6379"
     volumes:
