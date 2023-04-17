@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230416191203 extends AbstractMigration
+final class Version20230417203330 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,16 +20,20 @@ final class Version20230416191203 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE SEQUENCE account_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE apitoken_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE billing_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE context_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE image_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE translate_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
         $this->addSql('CREATE SEQUENCE "user_id_seq" INCREMENT BY 1 MINVALUE 1 START 1');
+        $this->addSql('CREATE TABLE account (id INT NOT NULL, customer_id INT NOT NULL, balance INT NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_7D3656A49395C3F3 ON account (customer_id)');
         $this->addSql('CREATE TABLE apitoken (id INT NOT NULL, customer_id INT NOT NULL, token TEXT NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, is_valid BOOLEAN NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_23E5A7D39395C3F3 ON apitoken (customer_id)');
-        $this->addSql('CREATE TABLE billing (id INT NOT NULL, customer_id INT NOT NULL, sum INT NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE billing (id INT NOT NULL, customer_id INT NOT NULL, account_id INT NOT NULL, sum INT NOT NULL, type VARCHAR(15) NOT NULL, system VARCHAR(20) NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_EC224CAA9395C3F3 ON billing (customer_id)');
+        $this->addSql('CREATE INDEX IDX_EC224CAA9B6B5FBA ON billing (account_id)');
         $this->addSql('CREATE TABLE context (id INT NOT NULL, source_url TEXT NOT NULL, image_url TEXT DEFAULT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, text TEXT DEFAULT NULL, lang VARCHAR(2) NOT NULL, source_name VARCHAR(255) NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, sentiment VARCHAR(255) DEFAULT NULL, category TEXT DEFAULT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(10) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_E25D857E5FA9FB052B36786B ON context (source_name, title)');
         $this->addSql('COMMENT ON COLUMN context.category IS \'(DC2Type:simple_array)\'');
@@ -46,8 +50,10 @@ final class Version20230416191203 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
         $this->addSql('COMMENT ON COLUMN "user".lang IS \'(DC2Type:simple_array)\'');
         $this->addSql('COMMENT ON COLUMN "user".context_category IS \'(DC2Type:simple_array)\'');
+        $this->addSql('ALTER TABLE account ADD CONSTRAINT FK_7D3656A49395C3F3 FOREIGN KEY (customer_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE apitoken ADD CONSTRAINT FK_23E5A7D39395C3F3 FOREIGN KEY (customer_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE billing ADD CONSTRAINT FK_EC224CAA9395C3F3 FOREIGN KEY (customer_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE billing ADD CONSTRAINT FK_EC224CAA9B6B5FBA FOREIGN KEY (account_id) REFERENCES account (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE image ADD CONSTRAINT FK_C53D045F6B00C1CF FOREIGN KEY (context_id) REFERENCES context (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE image ADD CONSTRAINT FK_C53D045F9395C3F3 FOREIGN KEY (customer_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE translate ADD CONSTRAINT FK_4A1063776B00C1CF FOREIGN KEY (context_id) REFERENCES context (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
@@ -58,18 +64,22 @@ final class Version20230416191203 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
+        $this->addSql('DROP SEQUENCE account_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE apitoken_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE billing_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE context_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE image_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE translate_id_seq CASCADE');
         $this->addSql('DROP SEQUENCE "user_id_seq" CASCADE');
+        $this->addSql('ALTER TABLE account DROP CONSTRAINT FK_7D3656A49395C3F3');
         $this->addSql('ALTER TABLE apitoken DROP CONSTRAINT FK_23E5A7D39395C3F3');
         $this->addSql('ALTER TABLE billing DROP CONSTRAINT FK_EC224CAA9395C3F3');
+        $this->addSql('ALTER TABLE billing DROP CONSTRAINT FK_EC224CAA9B6B5FBA');
         $this->addSql('ALTER TABLE image DROP CONSTRAINT FK_C53D045F6B00C1CF');
         $this->addSql('ALTER TABLE image DROP CONSTRAINT FK_C53D045F9395C3F3');
         $this->addSql('ALTER TABLE translate DROP CONSTRAINT FK_4A1063776B00C1CF');
         $this->addSql('ALTER TABLE translate DROP CONSTRAINT FK_4A1063779395C3F3');
+        $this->addSql('DROP TABLE account');
         $this->addSql('DROP TABLE apitoken');
         $this->addSql('DROP TABLE billing');
         $this->addSql('DROP TABLE context');

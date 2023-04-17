@@ -1,8 +1,11 @@
 <?php
 namespace App\Repository;
 
+use App\Entity\APIToken;
 use App\Entity\User;
 use App\Service\AccountService;
+use App\Util\Helper;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
@@ -82,5 +85,26 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         }
 
         return $user;
+    }
+
+    public function findByEmail(string $email): User
+    {
+        $user = $this->findOneBy(['email' => $email]);
+
+        if (!$user) {
+            throw new \Exception('Can not find user: ' . $email);
+        }
+
+        return $user;
+    }
+
+    public function addApiToken(User $user, int $term): User
+    {
+        $hash = Helper::generateAPITokenHash($user->getEmail());
+        return $user->addAPIToken(
+                (new APIToken())->setIsValid(true)
+                    ->setDate(new DateTime('now +' . $term . ' year'))
+                    ->setToken($hash)
+        );
     }
 }

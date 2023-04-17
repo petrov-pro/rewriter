@@ -17,15 +17,15 @@ class APIToken
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $token = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTimeInterface $date = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column]
     private ?bool $is_valid = null;
 

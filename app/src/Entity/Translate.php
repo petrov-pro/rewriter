@@ -19,19 +19,19 @@ class Translate
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $title = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $text = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 2)]
     private ?string $lang = null;
 

@@ -44,27 +44,27 @@ class Context
     #[ORM\Column(length: 2)]
     private ?string $lang = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 255)]
     private ?string $source_name = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTimeInterface $date = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $sentiment = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
     private array $category = [];
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToMany(mappedBy: 'context', targetEntity: Translate::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $translates;
 

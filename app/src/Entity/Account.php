@@ -17,7 +17,7 @@ class Account
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column]
     private ?int $balance = null;
 
@@ -46,6 +46,13 @@ class Account
     public function setBalance(int $balance): self
     {
         $this->balance = $balance;
+
+        return $this;
+    }
+
+    public function addBalance(int $balance): self
+    {
+        $this->balance = $this->balance + $balance;
 
         return $this;
     }

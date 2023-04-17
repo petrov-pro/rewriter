@@ -21,7 +21,7 @@ services:
             $availableLangs: '%env(json:AVAILABLE_LANG)%'
             $needCreateImage: '%env(bool:NEED_CREATE_IMAGE)%'
             $countImage: '%env(int:COUNT_IMAGE)%'
-            $saltWord: 're-writer-t'
+            $adminEmail: '%env(string:ADMIN_EMAIL)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

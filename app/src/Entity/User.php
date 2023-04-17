@@ -7,47 +7,58 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+
+    public const ROLE_USER = 'ROLE_USER';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Assert\NotBlank(groups: [APIEnum::GROUP_NAME_CREATE->value])]
+    #[Assert\Email(groups: [APIEnum::GROUP_NAME_CREATE->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value])]
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value])]
     #[ORM\Column]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
+    #[Assert\NotBlank(groups: [APIEnum::GROUP_NAME_CREATE->value])]
+    #[Groups([APIEnum::GROUP_NAME_CREATE->value])]
     #[ORM\Column]
     private ?string $password = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Assert\NotBlank]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(type: Types::SIMPLE_ARRAY)]
     private array $lang = [];
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Assert\NotBlank]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
     private array $context_category = [];
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $apiTokens;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Billing::class)]
     private Collection $billings;
 
@@ -57,7 +68,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Translate::class)]
     private Collection $translates;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToOne(mappedBy: 'customer', cascade: ['persist', 'remove'])]
     private ?Account $account = null;
 
@@ -67,6 +78,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->billings = new ArrayCollection();
         $this->images = new ArrayCollection();
         $this->translates = new ArrayCollection();
+    }
+
+    public function setId(?int $id)
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getId(): ?int
@@ -103,7 +120,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        $roles[] = self::ROLE_USER;
 
         return array_unique($roles);
     }

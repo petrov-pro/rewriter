@@ -3,6 +3,8 @@ namespace App\Entity;
 
 use App\Repository\BillingRepository;
 use App\Util\APIEnum;
+use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -11,6 +13,7 @@ class Billing
 {
 
     public const TYPE_DEPOSIT = 'deposit';
+    public const TYPE_MODIFY = 'modify';
     public const TYPE_WITHDRAW = 'withdraw';
     public const SYSTEM = 'system';
 
@@ -19,7 +22,7 @@ class Billing
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column]
     private ?int $sum = null;
 
@@ -31,13 +34,17 @@ class Billing
     #[ORM\JoinColumn(nullable: false)]
     private ?Account $account = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 15)]
     private ?string $type = null;
 
-    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 20)]
     private ?string $system = null;
+
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTimeInterface $date = null;
 
     public function getId(): ?int
     {
@@ -100,6 +107,18 @@ class Billing
     public function setSystem(string $system): self
     {
         $this->system = $system;
+
+        return $this;
+    }
+
+    public function getDate(): ?DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(DateTimeInterface $date): self
+    {
+        $this->date = $date;
 
         return $this;
     }

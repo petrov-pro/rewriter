@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -35,8 +36,8 @@ class ContextAPIController extends AbstractController
             return $repository->findPublicContext($this->security->getUser()->getId(), $page, $limit, $source);
         });
 
-        return $this->json($contexts, 200, [], [
-                'groups' => [APIEnum::GROUP_NAME->value]
+        return $this->json($contexts, Response::HTTP_OK, [], [
+                'groups' => [APIEnum::GROUP_NAME_SHOW->value]
         ]);
     }
 }

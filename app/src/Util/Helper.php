@@ -8,4 +8,9 @@ final class Helper
     {
         return str_replace(['/', '\\', '.', '.', ':'], '_', $idt) . md5(serialize($params));
     }
+
+    public static function generateAPITokenHash(string $email): string
+    {
+        return md5($email . time() . time());
+    }
 }
