@@ -2,6 +2,7 @@
 namespace App\Request\Cryptonews;
 
 use App\Request\Cryptonews\DTO\NewsDTO;
+use App\Util\CategoryMainEnum;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -51,6 +52,11 @@ class CryptonewsRequest
 
         return $this->serializer->deserialize($body, NewsDTO::class . '[]', JsonEncoder::FORMAT, [
                 AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true,
+                AbstractNormalizer::CALLBACKS => [
+                    'topics' => function ($innerObject, $outerObject, string $attributeName, string $format = null, array $context = []) {
+                        return array_merge($innerObject, [CategoryMainEnum::CRYPTO->value]);
+                    }
+                ],
                 UnwrappingDenormalizer::UNWRAP_PATH => '[data]'
         ]);
     }

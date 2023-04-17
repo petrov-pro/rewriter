@@ -3,7 +3,7 @@ namespace App\Service\ContextProvider;
 
 use App\MessageHandler\Message\ContextInterface;
 use App\Service\ContextService;
-use App\Service\Parser\ParserService;
+use App\Service\Parser\ParserHandler;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -34,17 +34,17 @@ class ContextManager
                 $contexts = $contextProvider->getContexts();
                 /** @var ContextInterface $message */
                 foreach ($contexts as $message) {
-                    if ($this->contextService->isDuplicate($message->getTitle())) {
+                    if ($this->contextService->isDuplicate($message->getTitle(), $message->getSourceName())) {
                         $this->logger->info('Find duplicate: ' . $contextProvider->getProviderName() . ':' . $message->getSourceName());
                         continue;
                     }
-
+                    
                     $contextEntity = $this->contextService->create($message);
                     $message->setId($contextEntity->getId());
 
                     $this->logger->info('Start to send content from: ' . $contextProvider->getProviderName() . ':' . $message->getSourceName());
                     $this->bus->dispatch($message,
-                        [new TransportNamesStamp([ParserService::TRANSPORT_NAME])]
+                        [new TransportNamesStamp([ParserHandler::TRANSPORT_NAME])]
                     );
                 }
             } catch (Exception $ex) {

@@ -5,6 +5,8 @@ use App\Entity\Context;
 use App\Entity\Translate;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ContextRepository;
+use App\Repository\TranslateRepository;
+use App\Repository\UserRepository;
 use App\Util\SentimentEnum;
 use App\Util\TypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,14 +17,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ContextService
 {
 
-    public const STATUS_INIT = 'init';
-    public const STATUS_FINISH = 'finish';
-    public const STATUS_PARSER_NOT_FOUND = 'parser_not_found';
-    public const TYPE_ORIGINAL = 'original';
-    public const TYPE_MODIFY = 'modify';
-
     public function __construct(
         private ContextRepository $contextRepository,
+        private TranslateRepository $translateRepository,
+        private UserRepository $userRepository,
         private ValidatorInterface $validator,
         private EntityManagerInterface $entityManager
     )
@@ -30,18 +28,7 @@ class ContextService
         
     }
 
-    public function findOrCreate(Context $context): Context
-    {
-        $this->validate($context);
-        $contextOriginal = $this->findOneByHash($context->getHash());
-        if ($contextOriginal) {
-            return $contextOriginal;
-        }
-        $this->contextRepository->save($context);
-        return $context;
-    }
-
-    public function save(Context $entity, bool $flush = true): void
+    public function save(Context $entity, bool $flush = false): void
     {
         $this->validate($entity);
         $this->entityManager->persist($entity);
@@ -60,9 +47,9 @@ class ContextService
         }
     }
 
-    public function isDuplicate(string $title): bool
+    public function isDuplicate(string $title, string $source): bool
     {
-        $context = $this->contextRepository->findOneByHash(md5($title));
+        $context = $this->contextRepository->findOneByTitleSource($title, $source);
         return !empty($context);
     }
 
@@ -71,55 +58,91 @@ class ContextService
         $contextEntity = new Context();
         $contextEntity->setCategory($context->getCategory())
             ->setDate($context->getDate())
-            ->setHash($this->prepareHash($context->getTitle()))
             ->setImageUrl($context->getImageUrl())
             ->setSentiment($this->prepareSentiment($context->getSentiment()))
             ->setSourceName($context->getSourceName())
             ->setSourceUrl($context->getSourceUrl())
-            ->setStatus(self::STATUS_INIT)
+            ->setDescription($context->getDescription())
+            ->setLang($context->getLang())
             ->setTitle($context->getTitle())
+            ->setStatus(Context::STATUS_INIT)
+            ->setCategory($context->getCategory())
             ->setType($this->prepareType($context->getType()));
 
-        $this->save($contextEntity);
+        $this->save($contextEntity, true);
 
         return $contextEntity;
     }
 
     public function saveModifyContext(
         int $id,
+        int $userId,
         string $text,
         string $textDescription,
         string $textTitle,
         string $transletTo,
-        string $imageUrl = '',
-        string $type = self::TYPE_MODIFY,
-        string $status = null
+        int $token,
+        bool $flush = true
     ): Context
     {
-        $contextEntity = $this->contextRepository->find($id);
-        if (!$contextEntity) {
-            throw new InvalidArgumentException('Can not find context entity: ' . $id);
-        }
+        $contextEntity = $this->findById($id);
 
-        if ($status) {
-            $contextEntity->setStatus($status);
-        }
-
-        if ($imageUrl) {
-            $contextEntity->setImageUrl($imageUrl);
-        }
-
-        $translateOriginal = new Translate();
-        $translateOriginal->setTitle($textTitle)
+        $translate = (new Translate())->setTitle($textTitle)
             ->setDescription($textDescription)
             ->setText($text)
-            ->setType($type)
+            ->setCustomer($this->userRepository->findOrThrow($userId))
+            ->setToken($token)
             ->setLang($transletTo);
 
-        $contextEntity->addTranslate($translateOriginal);
-        $this->save($contextEntity);
+        $contextEntity->addTranslate($translate);
+        $this->save($contextEntity, $flush);
 
         return $contextEntity;
+    }
+
+    public function updateStatus(int $id, string $status): Context
+    {
+        $context = $this->findById($id);
+        $context->setStatus($status);
+        $this->save($context, true);
+
+        return $context;
+    }
+
+    public function updateStatusText(int $id, string $status, string $text): Context
+    {
+        $context = $this->findById($id);
+        $context->setStatus($status);
+        $context->setText($text);
+        $this->save($context, true);
+
+        return $context;
+    }
+
+    public function isDuplicateTranslate(int $userId, int $contextId, string $lang): bool
+    {
+        $translate = $this->translateRepository->findOneBy([
+            'customer' => $userId,
+            'context' => $contextId,
+            'lang' => $lang
+        ]);
+
+        return $translate !== null;
+    }
+
+    public function checkContextId(int $id): void
+    {
+        $this->findById($id);
+    }
+
+    public function findById(int $id): Context
+    {
+        $context = $this->contextRepository->find($id);
+        if (!$context) {
+            throw new InvalidArgumentException('Not found entity');
+        }
+
+        return $context;
     }
 
     private function prepareSentiment(string $sentiment): string
@@ -140,28 +163,11 @@ class ContextService
         };
     }
 
-    private function prepareHash(string $param): string
-    {
-        return md5($param);
-    }
-
     private function validate(Context $context): void
     {
         $errors = $this->validator->validate($context);
         if (count($errors) > 0) {
             throw new ValidationFailedException($errors, $errors);
         }
-    }
-
-    public function updateStatus(int $id, string $status): Context
-    {
-        $context = $this->contextRepository->find($id);
-        if (!$context) {
-            throw new InvalidArgumentException('Not found entity');
-        }
-        $context->setStatus($status);
-        $this->save($context);
-
-        return $context;
     }
 }

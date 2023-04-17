@@ -25,23 +25,29 @@ class ContextRepository extends ServiceEntityRepository
         parent::__construct($registry, Context::class);
     }
 
-    public function findOneByHash(string $hash): ?Context
+    public function findOneByTitleSource(string $title, string $source): ?Context
     {
-        return $this->createQueryBuilder('r')
-                ->andWhere('r.hash = :val')
-                ->setParameter('val', $hash)
+        return $this->createQueryBuilder('c')
+                ->andWhere('c.title = :title')
+                ->andWhere('c.source_name = :source')
+                ->setParameter('title', $title)
+                ->setParameter('source', $source)
                 ->getQuery()
                 ->getOneOrNullResult();
     }
 
-    public function findPublicContext(int $page, int $limit, string $source = ''): array
+    public function findPublicContext(int $customerId, int $page, int $limit, string $source = ''): array
     {
+
         $query = $this->createQueryBuilder('c')
             ->select('c', 't')
-            ->innerJoin('c.translates', 't', Join::WITH, "t.type='modify'")
+            ->innerJoin('c.translates', 't')
+            ->innerJoin('t.customer', 'u')
+            ->innerJoin('u.apiTokens', 'at', Join::WITH, "at.is_valid = true AND at.date >= CURRENT_TIMESTAMP()")
             ->setFirstResult($page)
             ->setMaxResults($limit)
-            ->where("c.status = '" . ContextService::STATUS_FINISH . "'")
+            ->where('u.id = :userId')
+            ->setParameter('userId', $customerId)
             ->orderBy('c.id', 'DESC');
 
         if ($source) {

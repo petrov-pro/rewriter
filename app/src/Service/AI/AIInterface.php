@@ -1,14 +1,20 @@
 <?php
 namespace App\Service\AI;
 
+use App\Service\AI\DTO\ImageInterface;
+use App\Service\AI\DTO\TextInterface;
+use App\Util\TypeDataEnum;
+
 interface AIInterface
 {
 
-    public function rewrite(string $textRewrite, string $translateTo = ''): string;
+    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = ''): TextInterface;
 
-    public function keywords(string $title, int $count = 3): string;
+    public function keywords(mixed $idt, string $title, int $count = 3): TextInterface;
 
-    public function createImage(string $prompt, string $type = 'url'): string;
+    public function createImage(mixed $idt, string $prompt, string $type = 'url'): ImageInterface;
 
-    public function findCountToken(string $text): int;
+    public function findSupposedCost(TypeDataEnum $type, mixed $token): int;
+
+    public function findCost(TypeDataEnum $type, int $token): int;
 }

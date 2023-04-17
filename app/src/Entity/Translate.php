@@ -2,10 +2,15 @@
 namespace App\Entity;
 
 use App\Repository\TranslateRepository;
+use App\Util\APIEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TranslateRepository::class)]
+#[ORM\UniqueConstraint(
+        columns: ['lang', 'context_id', 'customer_id']
+    )]
 class Translate
 {
 
@@ -14,28 +19,32 @@ class Translate
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $title = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $text = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(length: 2)]
     private ?string $lang = null;
-
-    #[ORM\Column(length: 10)]
-    private ?string $type = null;
 
     #[ORM\ManyToOne(inversedBy: 'translates')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Context $context = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $token = null;
+
+    #[ORM\ManyToOne(inversedBy: 'translates')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $customer = null;
 
     public function getId(): ?int
     {
@@ -90,18 +99,6 @@ class Translate
         return $this;
     }
 
-    public function getType(): ?string
-    {
-        return $this->type;
-    }
-
-    public function setType(string $type): self
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
     public function getContext(): ?Context
     {
         return $this->context;
@@ -110,6 +107,30 @@ class Translate
     public function setContext(?Context $context): self
     {
         $this->context = $context;
+
+        return $this;
+    }
+
+    public function getToken(): ?int
+    {
+        return $this->token;
+    }
+
+    public function setToken(?int $token): self
+    {
+        $this->token = $token;
+
+        return $this;
+    }
+
+    public function getCustomer(): ?User
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(?User $customer): self
+    {
+        $this->customer = $customer;
 
         return $this;
     }

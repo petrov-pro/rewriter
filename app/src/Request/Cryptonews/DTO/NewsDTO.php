@@ -17,12 +17,12 @@ class NewsDTO implements ContextInterface
     private string $text;
     private string $source_name;
     private DateTimeInterface $date;
-    private array $topics;
+    private array $topics = [];
     private string $sentiment;
     private string $type;
-    private string $tickers;
     private string $lang = 'en';
     private int $id;
+    private int $user_id;
 
     public function getSourceUrl(): string
     {
@@ -72,11 +72,6 @@ class NewsDTO implements ContextInterface
     public function getType(): string
     {
         return $this->type;
-    }
-
-    public function getTickers(): string
-    {
-        return $this->tickers;
     }
 
     public function setNewsUrl(string $news_url): self
@@ -133,12 +128,6 @@ class NewsDTO implements ContextInterface
         return $this;
     }
 
-    public function setTickers(string $tickers): self
-    {
-        $this->tickers = $tickers;
-        return $this;
-    }
-
     public function getCategory(): array
     {
         return $this->topics;
@@ -174,6 +163,23 @@ class NewsDTO implements ContextInterface
     public function setLang(string $lang): self
     {
         $this->lang = $lang;
+        return $this;
+    }
+
+    public function getUserId(): int
+    {
+        return $this->user_id;
+    }
+
+    public function setUserId(int $userId): self
+    {
+        $this->user_id = $userId;
+        return $this;
+    }
+
+    public function setCategory(array $category): self
+    {
+        $this->topics = $category;
         return $this;
     }
 }

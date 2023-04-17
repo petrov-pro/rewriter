@@ -1,16 +1,24 @@
 <?php
 namespace App\Service\AI;
 
+use App\Service\AI\DTO\ImageInterface;
+use App\Service\AI\DTO\OpenAI\ImageDTO;
+use App\Service\AI\DTO\OpenAI\TextDTO;
+use App\Service\AI\DTO\TextInterface;
+use App\Util\TypeDataEnum;
 use Exception;
-use InvalidArgumentException;
 use Orhanerday\OpenAi\OpenAi;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class OpenAIService implements AIInterface
 {
 
+    public const DIMENSION = 1000;
     public const TRANSPORT_NAME = 'rewrite';
     public const ADDITIONAL_COUNT_TOKEN = 200;
     private const CACHE_TIME = 604800;
@@ -19,60 +27,92 @@ class OpenAIService implements AIInterface
         private int $maxToken,
         private LoggerInterface $logger,
         private OpenAi $openAI,
-        private CacheInterface $cache
+        private CacheInterface $cache,
+        private SerializerInterface $serializer,
+        private int $countImage
     )
     {
         
     }
 
-    public function rewrite(string $textRewrite, string $translateTo = ''): string
+    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = ''): TextInterface
     {
-        return $this->cache->get($this->makeHash($textRewrite, $translateTo), function (ItemInterface $item) use ($textRewrite, $translateTo) {
+        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo), function (ItemInterface $item) use ($textRewrite, $translateTo) {
                 $item->expiresAfter(self::CACHE_TIME);
 
                 return $this->completion('Rewrite, leave tags' . ($translateTo ? ' and translate to ' . $translateTo : '') . ': ' . $textRewrite);
             });
     }
 
-    public function keywords(string $title, int $count = 3): string
+    public function keywords(mixed $idt, string $title, int $count = 3): TextInterface
     {
-        return $this->cache->get($this->makeHash($title, $count), function (ItemInterface $item) use ($title, $count) {
+        return $this->cache->get($this->makeHash($idt, $title, $count), function (ItemInterface $item) use ($title, $count) {
                 $item->expiresAfter(self::CACHE_TIME);
 
                 return $this->completion("Make $count main keywords make in one string over a comma: " . $title);
             });
     }
 
-    public function translate(string $text, string $lang): string
+    public function translate(mixed $idt, string $text, string $lang): TextInterface
     {
-        return $this->cache->get($this->makeHash($text, $lang), function (ItemInterface $item) use ($text, $lang) {
+        return $this->cache->get($this->makeHash($idt, $text, $lang), function (ItemInterface $item) use ($text, $lang) {
                 $item->expiresAfter(self::CACHE_TIME);
 
                 return $this->completion("Translate to $lang, leave tags: " . $text);
             });
     }
 
-    public function createImage(string $prompt, string $type = 'url'): string
+    public function createImage(mixed $idt, string $prompt, string $type = 'url'): ImageInterface
     {
-        return $this->cache->get($this->makeHash($prompt, $type), function (ItemInterface $item) use ($prompt, $type) {
+        return $this->cache->get($this->makeHash($idt, $prompt, $type), function (ItemInterface $item) use ($prompt, $type) {
                 $item->expiresAfter(self::CACHE_TIME);
 
                 return $this->image($prompt, $type);
             });
     }
 
-    public function editImage(string $prompt, string $imagePath, string $type = 'url'): string
+    public function editImage(mixed $idt, string $prompt, string $imagePath, string $type = 'url'): ImageInterface
     {
-        return $this->cache->get($this->makeHash($prompt, $imagePath, $type), function (ItemInterface $item) use ($prompt, $imagePath, $type) {
+        return $this->cache->get($this->makeHash($idt, $prompt, $imagePath, $type), function (ItemInterface $item) use ($prompt, $imagePath, $type) {
                 $item->expiresAfter(self::CACHE_TIME);
 
                 return $this->image($prompt, $type, $imagePath);
             });
     }
 
-    public function findCountToken(string $text): int
+    public function findSupposedCost(TypeDataEnum $type, mixed $token): int
     {
-        $supposedToken = ((str_word_count($text) / 75) * 100) + self::ADDITIONAL_COUNT_TOKEN;
+        return (int) call_user_func(match ($type) {
+                TypeDataEnum::TEXT => function () use ($token) {
+                    $supposedToken = $this->findSupposedToken($token);
+
+                    return ((int) ($supposedToken / self::DIMENSION)) * TextDTO::COST;
+                },
+                TypeDataEnum::IMAGE => function () use ($token) {
+
+                    return ((int) $token) * ImageDTO::COST;
+                },
+                default => throw new Exception('UnSupported type for cost'),
+            });
+    }
+
+    public function findCost(TypeDataEnum $type, int $token): int
+    {
+        return (int) match ($type) {
+                TypeDataEnum::TEXT => ($token / self::DIMENSION) * TextDTO::COST,
+                TypeDataEnum::IMAGE => $token * ImageDTO::COST,
+                default => throw new Exception('UnSupported type for cost'),
+            };
+    }
+
+    private function findSupposedToken(string $text): int
+    {
+        return ((int) (str_word_count($text) / 75) * 100) + self::ADDITIONAL_COUNT_TOKEN;
+    }
+
+    private function findMaxAvailableToken(string $text): int
+    {
+        $supposedToken = $this->findSupposedToken($text);
 
         if ($supposedToken >= ($this->maxToken / 2)) {
             throw new TooMuchTokenException('Supposed count of tokens: ' . $supposedToken);
@@ -81,13 +121,13 @@ class OpenAIService implements AIInterface
         return (int) ($this->maxToken - $supposedToken);
     }
 
-    private function image(string $prompt, string $type, string $imagePath = ''): string
+    private function image(string $prompt, string $type, string $imagePath = ''): ImageInterface
     {
         try {
             $typeOperation = 'image';
             $data = [
                 "prompt" => $prompt,
-                "n" => 1,
+                "n" => $this->countImage,
                 "size" => "512x512",
                 "response_format" => $type,
             ];
@@ -104,17 +144,19 @@ class OpenAIService implements AIInterface
                 'prompt' => $prompt
             ]);
 
-            return $response->data[0]->url ?? throw new InvalidArgumentException('Seems wrong answer from open AI. Miss data[0]->url');
+            return $this->serializer->deserialize($complete, ImageDTO::class, JsonEncoder::FORMAT, [
+                    AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
+            ]);
         } catch (Exception $ex) {
             $this->logger->error($ex->getMessage());
             throw $ex;
         }
     }
 
-    private function completion(string $prompt): string
+    private function completion(string $prompt): TextInterface
     {
         try {
-            $supposedToken = $this->findCountToken($prompt);
+            $supposedToken = $this->findMaxAvailableToken($prompt);
             $complete = $this->openAI->completion([
                 'model' => 'text-davinci-003',
                 'prompt' => $prompt,
@@ -124,21 +166,22 @@ class OpenAIService implements AIInterface
                 'presence_penalty' => 0.6,
             ]);
 
-            $response = json_decode($complete);
             $this->logger->debug("Response openIA completion", [
                 'supposed_token' => $supposedToken,
-                'response' => $response,
+                'response' => $complete,
                 'text_incoming' => $prompt
             ]);
 
-            return $response->choices[0]->text ?? throw new InvalidArgumentException('Seems wrong answer from open AI. Miss choices[0]->text');
+            return $this->serializer->deserialize($complete, TextDTO::class, JsonEncoder::FORMAT, [
+                    AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
+            ]);
         } catch (Exception $ex) {
             $this->logger->error($ex->getMessage());
             throw $ex;
         }
     }
 
-    protected function makeHash(...$params): string
+    private function makeHash(...$params): string
     {
         return md5(serialize($params));
     }

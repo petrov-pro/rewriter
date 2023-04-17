@@ -1,9 +1,10 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Service\AccountService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -19,6 +20,7 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
  */
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
@@ -56,28 +58,29 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->save($user, true);
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findAllActive(array $categories): array
+    {
+        $query = $this->createQueryBuilder('u')
+            ->innerJoin('u.apiTokens', 't', Join::WITH, "t.is_valid = true AND t.date >= CURRENT_TIMESTAMP()")
+            ->innerJoin('u.account', 'a', Join::WITH, "a.balance > " . AccountService::MIN_BALANCE)
+            ->orderBy('u.id', 'DESC');
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        foreach ($categories as $key => $category) {
+            $query->orWhere($query->expr()->like('u.context_category', ":category$key"));
+            $query->setParameter(":category$key", '%' . $category . '%');
+        }
+
+        return $query->getQuery()
+                ->execute();
+    }
+
+    public function findOrThrow(int $customerId): User
+    {
+        $user = $this->find($customerId);
+        if (!$user) {
+            throw new \Exception('Can not find user: ' . $customerId);
+        }
+
+        return $user;
+    }
 }

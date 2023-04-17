@@ -29,7 +29,7 @@ class AccessTokenHandler implements AccessTokenHandlerInterface
             throw new AccessDeniedException('Token time expired.');
         }
 
-        $user = $tokenEntity->getUserId();
+        $user = $tokenEntity->getCustomer();
         if (!$user) {
             throw new AccessDeniedException('User not found');
         }

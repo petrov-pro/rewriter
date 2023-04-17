@@ -43,12 +43,15 @@ class TokenListCommand extends Command
 
         $io->newLine();
         $table = new Table($output);
-        $table->setHeaders(['Token', 'Date']);
+        $table->setHeaders(['Token', 'Lang', 'Category', 'Balance', 'Date']);
         $table->setHeaderTitle('User: ' . $user->getEmail());
 
         foreach ($user->getAPITokens() as $token) {
             $table->addRow([
                 $token->getToken(),
+                implode(',', $token->getCustomer()->getLang()),
+                implode(',', $token->getCustomer()->getContextCategory()),
+                $token->getCustomer()->getAccount()->getBalance(),
                 $token->getDate()->format('d/m/Y')
             ]);
         }

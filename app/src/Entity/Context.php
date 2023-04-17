@@ -2,69 +2,82 @@
 namespace App\Entity;
 
 use App\Repository\ContextRepository;
+use App\Util\APIEnum;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ContextRepository::class)]
 #[ORM\UniqueConstraint(
-        columns: ['source_name', 'hash']
+        columns: ['source_name', 'title']
     )]
 class Context
 {
+
+    public const STATUS_INIT = 'init';
+    public const STATUS_NOT_FOUND = 'not_found';
+    public const STATUS_FINISH = 'finish';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['show_content'])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $source_url = null;
 
-    #[Groups(['show_content'])]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $image_url = null;
 
-    #[Groups(['show_content'])]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[Groups(['show_content'])]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $text = null;
+
+    #[ORM\Column(length: 2)]
+    private ?string $lang = null;
+
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(length: 255)]
     private ?string $source_name = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTimeInterface $date = null;
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $sentiment = null;
 
-    #[Groups(['show_content'])]
-    #[ORM\Column(type: Types::ARRAY, nullable: true)]
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
     private array $category = [];
 
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $status = null;
-
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $hash = null;
-
-    #[Groups(['show_content'])]
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\OneToMany(mappedBy: 'context', targetEntity: Translate::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $translates;
+
+    #[ORM\Column(length: 10)]
+    private ?string $status = null;
+
+    #[ORM\OneToMany(mappedBy: 'context', targetEntity: Image::class, orphanRemoval: true)]
+    private Collection $images;
 
     public function __construct()
     {
         $this->translates = new ArrayCollection();
+        $this->images = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -168,28 +181,6 @@ class Context
         return $this;
     }
 
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(?string $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function getHash(): ?string
-    {
-        return $this->hash;
-    }
-
-    public function setHash(?string $hash): self
-    {
-        $this->hash = $hash;
-        return $this;
-    }
-
     /**
      * @return Collection<int, Translate>
      */
@@ -214,6 +205,84 @@ class Context
             // set the owning side to null (unless already changed)
             if ($translate->getContext() === $this) {
                 $translate->setContext(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getLang(): ?string
+    {
+        return $this->lang;
+    }
+
+    public function setLang(string $lang): self
+    {
+        $this->lang = $lang;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getText(): ?string
+    {
+        return $this->text;
+    }
+
+    public function setText(?string $text): self
+    {
+        $this->text = $text;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Image>
+     */
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImage(Image $image): self
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+            $image->setContext($this);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(Image $image): self
+    {
+        if ($this->images->removeElement($image)) {
+            // set the owning side to null (unless already changed)
+            if ($image->getContext() === $this) {
+                $image->setContext(null);
             }
         }
 

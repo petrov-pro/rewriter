@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230412201057 extends AbstractMigration
+final class Version20230416212254 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,13 +20,17 @@ final class Version20230412201057 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE apitoken ADD is_valid BOOLEAN NOT NULL');
+        $this->addSql('ALTER TABLE billing ADD account_id INT NOT NULL');
+        $this->addSql('ALTER TABLE billing ADD CONSTRAINT FK_EC224CAA9B6B5FBA FOREIGN KEY (account_id) REFERENCES account (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('CREATE INDEX IDX_EC224CAA9B6B5FBA ON billing (account_id)');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
-        $this->addSql('ALTER TABLE apitoken DROP is_valid');
+        $this->addSql('ALTER TABLE billing DROP CONSTRAINT FK_EC224CAA9B6B5FBA');
+        $this->addSql('DROP INDEX IDX_EC224CAA9B6B5FBA');
+        $this->addSql('ALTER TABLE billing DROP account_id');
     }
 }

@@ -26,11 +26,17 @@ interface ContextInterface
 
     public function getText(): string;
 
-    public function setText(string $text): self;
-
     public function getLang(): string;
+
+    public function getUserId(): int;
 
     public function getId(): int;
 
     public function setId(int $id): self;
+
+    public function setUserId(int $userId): self;
+
+    public function setText(string $text): self;
+
+    public function setLang(string $lang): self;
 }

@@ -1,26 +1,31 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Util\APIEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column]
     private array $roles = [];
 
@@ -30,12 +35,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
-    private Collection $APITokens;
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\Column(type: Types::SIMPLE_ARRAY)]
+    private array $lang = [];
+
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
+    private array $context_category = [];
+
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $apiTokens;
+
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Billing::class)]
+    private Collection $billings;
+
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Image::class)]
+    private Collection $images;
+
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Translate::class)]
+    private Collection $translates;
+
+    #[Groups([APIEnum::GROUP_NAME->value])]
+    #[ORM\OneToOne(mappedBy: 'customer', cascade: ['persist', 'remove'])]
+    private ?Account $account = null;
 
     public function __construct()
     {
-        $this->APITokens = new ArrayCollection();
+        $this->apiTokens = new ArrayCollection();
+        $this->billings = new ArrayCollection();
+        $this->images = new ArrayCollection();
+        $this->translates = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -108,19 +139,43 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
+    public function getLang(): array
+    {
+        return $this->lang;
+    }
+
+    public function setLang(array $lang): self
+    {
+        $this->lang = $lang;
+
+        return $this;
+    }
+
+    public function getContextCategory(): array
+    {
+        return $this->context_category;
+    }
+
+    public function setContextCategory(?array $context_category): self
+    {
+        $this->context_category = $context_category;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, APIToken>
      */
     public function getAPITokens(): Collection
     {
-        return $this->APITokens;
+        return $this->apiTokens;
     }
 
     public function addAPIToken(APIToken $aPIToken): self
     {
-        if (!$this->APITokens->contains($aPIToken)) {
-            $this->APITokens->add($aPIToken);
-            $aPIToken->setUserId($this);
+        if (!$this->apiTokens->contains($aPIToken)) {
+            $this->apiTokens->add($aPIToken);
+            $aPIToken->setCustomer($this);
         }
 
         return $this;
@@ -128,12 +183,119 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeAPIToken(APIToken $aPIToken): self
     {
-        if ($this->APITokens->removeElement($aPIToken)) {
+        if ($this->apiTokens->removeElement($aPIToken)) {
             // set the owning side to null (unless already changed)
-            if ($aPIToken->getUserId() === $this) {
-                $aPIToken->setUserId(null);
+            if ($aPIToken->getCustomer() === $this) {
+                $aPIToken->setCustomer(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Billing>
+     */
+    public function getBillings(): Collection
+    {
+        return $this->billings;
+    }
+
+    public function addBilling(Billing $billing): self
+    {
+        if (!$this->billings->contains($billing)) {
+            $this->billings->add($billing);
+            $billing->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBilling(Billing $billing): self
+    {
+        if ($this->billings->removeElement($billing)) {
+            // set the owning side to null (unless already changed)
+            if ($billing->getCustomer() === $this) {
+                $billing->setCustomer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Image>
+     */
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
+
+    public function addImage(Image $image): self
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+            $image->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(Image $image): self
+    {
+        if ($this->images->removeElement($image)) {
+            // set the owning side to null (unless already changed)
+            if ($image->getCustomer() === $this) {
+                $image->setCustomer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Translate>
+     */
+    public function getTranslates(): Collection
+    {
+        return $this->translates;
+    }
+
+    public function addTranslate(Translate $translate): self
+    {
+        if (!$this->translates->contains($translate)) {
+            $this->translates->add($translate);
+            $translate->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTranslate(Translate $translate): self
+    {
+        if ($this->translates->removeElement($translate)) {
+            // set the owning side to null (unless already changed)
+            if ($translate->getCustomer() === $this) {
+                $translate->setCustomer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAccount(): ?Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(Account $account): self
+    {
+        // set the owning side of the relation if necessary
+        if ($account->getCustomer() !== $this) {
+            $account->setCustomer($this);
+        }
+
+        $this->account = $account;
 
         return $this;
     }

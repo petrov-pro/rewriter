@@ -1,31 +1,37 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\APITokenRepository;
+use App\Util\APIEnum;
+use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: APITokenRepository::class)]
 class APIToken
 {
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $token = null;
 
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
+    private ?DateTimeInterface $date = null;
 
-    #[ORM\ManyToOne(inversedBy: 'APITokens')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user_id = null;
-
+    #[Groups([APIEnum::GROUP_NAME->value])]
     #[ORM\Column]
     private ?bool $is_valid = null;
+
+    #[ORM\ManyToOne(inversedBy: 'apiTokens')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $customer = null;
 
     public function getId(): ?int
     {
@@ -44,26 +50,14 @@ class APIToken
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?DateTimeInterface
     {
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setDate(DateTimeInterface $date): self
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    public function getUserId(): ?User
-    {
-        return $this->user_id;
-    }
-
-    public function setUserId(?User $user_id): self
-    {
-        $this->user_id = $user_id;
 
         return $this;
     }
@@ -76,6 +70,18 @@ class APIToken
     public function setIsValid(bool $is_valid): self
     {
         $this->is_valid = $is_valid;
+
+        return $this;
+    }
+
+    public function getCustomer(): ?User
+    {
+        return $this->customer;
+    }
+
+    public function setCustomer(?User $customer): self
+    {
+        $this->customer = $customer;
 
         return $this;
     }
