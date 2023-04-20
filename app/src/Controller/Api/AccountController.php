@@ -1,6 +1,7 @@
 <?php
-namespace App\Controller;
+namespace App\Controller\Api;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Util\APIEnum;
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: ['', '/api/v1/account'])]
 class AccountController extends AbstractController
@@ -41,6 +43,7 @@ class AccountController extends AbstractController
         ]);
     }
 
+    #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'PUT')]
     public function update(Request $request): JsonResponse
     {
@@ -53,6 +56,7 @@ class AccountController extends AbstractController
         ]);
     }
 
+    #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'DELETE')]
     public function delete(Request $request): JsonResponse
     {

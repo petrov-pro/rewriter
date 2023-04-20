@@ -1,19 +1,18 @@
 <?php
-namespace App\Controller;
+namespace App\Controller\Api;
 
-use App\Entity\APIToken;
+use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Util\APIEnum;
-use App\Util\Helper;
-use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: ['', '/api/v1/token'])]
-class TokenAPIController extends AbstractController
+class TokenController extends AbstractController
 {
 
     public function __construct(
@@ -23,6 +22,7 @@ class TokenAPIController extends AbstractController
         
     }
 
+    #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'POST')]
     public function regenerate(Request $request): JsonResponse
     {
@@ -40,6 +40,7 @@ class TokenAPIController extends AbstractController
         ]);
     }
 
+    #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'DELETE')]
     public function delete(Request $request): JsonResponse
     {

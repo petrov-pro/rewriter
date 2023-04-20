@@ -46,6 +46,10 @@ class Translate
     #[ORM\JoinColumn(nullable: false)]
     private ?User $customer = null;
 
+    #[ORM\ManyToOne(inversedBy: 'translate')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Site $site = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -131,6 +135,18 @@ class Translate
     public function setCustomer(?User $customer): self
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    public function getSite(): ?Site
+    {
+        return $this->site;
+    }
+
+    public function setSite(?Site $site): self
+    {
+        $this->site = $site;
 
         return $this;
     }

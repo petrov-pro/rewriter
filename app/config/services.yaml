@@ -42,7 +42,7 @@ services:
         App\Service\Parser\SiteParserInterface:
              tags: ['app.parser.site']
             
-    App\Service\ContextProvider\ContextManager:
+    App\MessageHandler\ContextHandler:
         arguments:
             $contextProviders: !tagged_iterator app.provider.news
             

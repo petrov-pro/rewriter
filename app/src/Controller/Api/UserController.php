@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
@@ -11,14 +11,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route(path: ['', '/api/v1/user'])]
-class UserAPIController extends AbstractController
+class UserController extends AbstractController
 {
 
     public function __construct(
@@ -40,22 +42,25 @@ class UserAPIController extends AbstractController
         ]);
     }
 
+    #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'POST')]
     public function create(Request $request): JsonResponse
     {
+        /** @var User $user */
         $user = $this->serializer->deserialize($request->getContent(), User::class, JsonEncoder::FORMAT, [
             AbstractNormalizer::CALLBACKS => [
-                'password' => function ($innerObject, $outerObject, string $attributeName, string $format = null, array $context = []) {
-                    return empty($innerObject) ? '' : md5($innerObject);
+                'password' => function ($innerObject) {
+                    return empty($innerObject) ? '' : \md5($innerObject);
                 }
             ],
-            'groups' => [APIEnum::GROUP_NAME_CREATE->value]
+            AbstractObjectNormalizer::GROUPS => [APIEnum::GROUP_NAME_CREATE->value]
         ]);
 
         $this->validate($user, APIEnum::GROUP_NAME_CREATE->value);
 
         $term = (int) $request->get('term', 1);
-        $user = $this->userRepository->addApiToken($user, $term);
+        $user->setRoles($user->getRoles())
+            ->addQuickAPIToken($term);
 
         $this->userRepository->save($user, false);
         $user->setAccount($this->accountService->setBalance(0, $user->getId(), true));
@@ -68,18 +73,16 @@ class UserAPIController extends AbstractController
     #[Route(path: ['', '/'], methods: 'PUT')]
     public function update(Request $request): JsonResponse
     {
-        $userRequest = $this->serializer->deserialize($request->getContent(), User::class, JsonEncoder::FORMAT, [
-            'groups' => [APIEnum::GROUP_NAME_UPDATE->value]
+        /** @var User $user */
+        $user = $this->security->getUser();
+        /** @var User $userUpdate */
+        $userUpdate = $this->serializer->deserialize($request->getContent(), User::class, JsonEncoder::FORMAT, [
+            AbstractObjectNormalizer::OBJECT_TO_POPULATE => $user,
+            AbstractObjectNormalizer::GROUPS => [APIEnum::GROUP_NAME_UPDATE->value]
         ]);
 
-        $this->validate($userRequest, APIEnum::GROUP_NAME_UPDATE->value);
-
-        $user = $this->security->getUser();
-
-        $user->setLang($userRequest->getLang())
-            ->setContextCategory($user->getContextCategory());
-
-        $this->userRepository->save($user, true);
+        $this->validate($userUpdate, APIEnum::GROUP_NAME_UPDATE->value);
+        $this->userRepository->save($userUpdate, true);
 
         return $this->json($user, Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]

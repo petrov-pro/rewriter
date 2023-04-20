@@ -1,5 +1,5 @@
 <?php
-namespace App\Service;
+namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
 

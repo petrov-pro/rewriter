@@ -1,10 +1,14 @@
 <?php
-namespace App\Service;
+namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
+use App\Repository\UserRepository;
+use App\Service\AccountService;
 use App\Service\AI\AIInterface;
 use App\Service\AI\TooMuchTokenException;
+use App\Service\ContextService;
 use App\Util\APIEnum;
+use App\Util\HtmlTagEnum;
 use App\Util\TypeDataEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -20,7 +24,8 @@ class RewriteHandler implements HanlderMessageInterface
         private AIInterface $AIService,
         private AccountService $accountService,
         private LoggerInterface $logger,
-        private TagAwareCacheInterface $cache
+        private TagAwareCacheInterface $cache,
+        private UserRepository $userRepository
     )
     {
         
@@ -67,31 +72,7 @@ class RewriteHandler implements HanlderMessageInterface
                 return;
             }
 
-            $text = $this->AIService->rewrite($message->getUserId(), $message->getText(), $message->getLang());
-            $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getLang());
-            $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getLang());
-            $token = $text->getCost() + $textDescription->getCost() + $textTitle->getCost();
-
-            ///transactional
-            $this->contextService->saveModifyContext(
-                $message->getId(),
-                $message->getUserId(),
-                $text->getText(),
-                $textDescription->getText(),
-                $textTitle->getText(),
-                $message->getLang(),
-                $token,
-                false
-            );
-
-            $this->accountService->withdraw(
-                $this->AIService->findCost(
-                    TypeDataEnum::TEXT,
-                    $token
-                ),
-                $message->getUserId(),
-                true
-            );
+            $this->rewriteProcess($message);
 
             $this->logger->info('Rewriter finished content message',
                 [
@@ -109,5 +90,40 @@ class RewriteHandler implements HanlderMessageInterface
             $this->logger->error($ex->getMessage(), (array) $ex);
             throw $ex;
         }
+    }
+
+    private function rewriteProcess(ContextInterface $message): void
+    {
+        $user = $this->userRepository->findOrThrow($message->getUserId());
+        $text = $this->AIService->rewrite(
+            $message->getUserId(),
+            ($user->getHtmlTag() === HtmlTagEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
+            $message->getLang(),
+            $user->getHtmlTag()
+        );
+        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getLang(), HtmlTagEnum::TAG_NOT_USE->value);
+        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getLang(), HtmlTagEnum::TAG_NOT_USE->value);
+        $token = $text->getToken() + $textDescription->getToken() + $textTitle->getToken();
+
+        ///transactional
+        $this->contextService->saveModifyContext(
+            $message->getId(),
+            $message->getUserId(),
+            $text->getText(),
+            $textDescription->getText(),
+            $textTitle->getText(),
+            $message->getLang(),
+            $token,
+            false
+        );
+
+        $this->accountService->withdraw(
+            $this->AIService->findCost(
+                TypeDataEnum::TEXT,
+                $token
+            ),
+            $message->getUserId(),
+            true
+        );
     }
 }

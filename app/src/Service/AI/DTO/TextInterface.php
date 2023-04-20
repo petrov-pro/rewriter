@@ -6,5 +6,5 @@ interface TextInterface
 
     public function getText(): string;
 
-    public function getCost(): int;
+    public function getToken(): int;
 }

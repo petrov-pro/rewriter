@@ -1,11 +1,13 @@
 <?php
-namespace App\Service;
+namespace App\MessageHandler;
 
 use App\Entity\Image;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ImageRepository;
 use App\Repository\UserRepository;
+use App\Service\AccountService;
 use App\Service\AI\AIInterface;
+use App\Service\ContextService;
 use App\Util\APIEnum;
 use App\Util\NormalizeText;
 use App\Util\TypeDataEnum;
@@ -46,6 +48,20 @@ class ImageHandler implements HanlderMessageInterface
 
             if (!$this->needCreateImage) {
                 $this->logger->info('Image skip content message',
+                    [
+                        'source' => $message->getSourceName(),
+                        'title' => $message->getTitle(),
+                        'lang' => $message->getLang()
+                    ]
+                );
+
+                return;
+            }
+
+            $user = $this->userRepository->findOrThrow($message->getUserId());
+
+            if (!$user->isNeedImage()) {
+                $this->logger->info('Image skip by user settings',
                     [
                         'source' => $message->getSourceName(),
                         'title' => $message->getTitle(),
@@ -99,13 +115,22 @@ class ImageHandler implements HanlderMessageInterface
             $image = (new Image())->setData($imageAI->getImages())
                 ->setKeywords($keywords->getText())
                 ->setContext($context)
-                ->setCustomer($this->userRepository->findOrThrow($message->getUserId()));
+                ->setCustomer($user);
             $this->imageRepository->save($image, false);
 
             $this->accountService->withdraw(
                 $this->AIService->findCost(
                     TypeDataEnum::IMAGE,
                     $this->countImage
+                ),
+                $message->getUserId(),
+                false
+            );
+
+            $this->accountService->withdraw(
+                $this->AIService->findCost(
+                    TypeDataEnum::TEXT,
+                    $keywords->getToken()
                 ),
                 $message->getUserId(),
                 true

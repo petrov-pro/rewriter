@@ -1,18 +1,21 @@
 <?php
 namespace App\Command;
 
-use App\Service\ContextProvider\ContextManager;
+use App\MessageHandler\ContextHandler;
+use stdClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 
 #[AsCommand(name: 'app:context')]
 class ContextCommand extends Command
 {
 
     public function __construct(
-        private ContextManager $manager
+        private MessageBusInterface $bus,
     )
     {
         parent::__construct();
@@ -26,8 +29,9 @@ class ContextCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<info>Start</info>');
-        $response = $this->manager->handle();
-        $output->writeln("<info>$response</info>");
+        $this->bus->dispatch(new stdClass(),
+            [new TransportNamesStamp([ContextHandler::TRANSPORT_NAME])]
+        );
 
         return Command::SUCCESS;
     }

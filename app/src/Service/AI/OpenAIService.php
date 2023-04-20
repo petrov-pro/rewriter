@@ -5,6 +5,7 @@ use App\Service\AI\DTO\ImageInterface;
 use App\Service\AI\DTO\OpenAI\ImageDTO;
 use App\Service\AI\DTO\OpenAI\TextDTO;
 use App\Service\AI\DTO\TextInterface;
+use App\Util\HtmlTagEnum;
 use App\Util\TypeDataEnum;
 use Exception;
 use Orhanerday\OpenAi\OpenAi;
@@ -35,12 +36,19 @@ class OpenAIService implements AIInterface
         
     }
 
-    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = ''): TextInterface
+    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = '', string $type = ''): TextInterface
     {
-        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo), function (ItemInterface $item) use ($textRewrite, $translateTo) {
+        $modificator = match ($type) {
+            HtmlTagEnum::TAG_AI->value => 'use html tags',
+            HtmlTagEnum::TAG_DEFAULT->value => 'leave tags',
+            HtmlTagEnum::TAG_NOT_USE->value => '',
+            default => 'use html tags next: ' . $type,
+        };
+
+        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo, $modificator), function (ItemInterface $item) use ($textRewrite, $translateTo, $modificator) {
                 $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->completion('Rewrite, leave tags' . ($translateTo ? ' and translate to ' . $translateTo : '') . ': ' . $textRewrite);
+                return $this->completion('Rewrite' . ($modificator ? ' and ' . $modificator : '') . ($translateTo ? ' and translate to ' . $translateTo : '') . ': ' . $textRewrite);
             });
     }
 

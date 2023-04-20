@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Repository\ContextRepository;
 use App\Util\APIEnum;
@@ -14,7 +14,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 #[Route(path: ['', '/api/v1/context'])]
-class ContextAPIController extends AbstractController
+class ContextController extends AbstractController
 {
 
     public function __construct(private TagAwareCacheInterface $cache, private Security $security)

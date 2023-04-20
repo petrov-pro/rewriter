@@ -1,5 +1,5 @@
 <?php
-namespace App\Service;
+namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\UserRepository;
@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 
-class SpreadHandler implements HanlderMessageInterface
+class OrderHandler implements HanlderMessageInterface
 {
 
     public const TRANSPORT_NAME = 'spread';

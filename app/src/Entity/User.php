@@ -3,6 +3,8 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use App\Util\APIEnum;
+use App\Util\Helper;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -33,7 +35,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column]
     private array $roles = [];
 
@@ -44,16 +46,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups([APIEnum::GROUP_NAME_CREATE->value])]
     #[ORM\Column]
     private ?string $password = null;
-
-    #[Assert\NotBlank]
-    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
-    #[ORM\Column(type: Types::SIMPLE_ARRAY)]
-    private array $lang = [];
-
-    #[Assert\NotBlank]
-    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
-    #[ORM\Column(type: Types::SIMPLE_ARRAY, nullable: true)]
-    private array $context_category = [];
 
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
@@ -72,12 +64,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'customer', cascade: ['persist', 'remove'])]
     private ?Account $account = null;
 
+    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Site::class, orphanRemoval: true)]
+    private Collection $sites;
+
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $company = null;
+
     public function __construct()
     {
         $this->apiTokens = new ArrayCollection();
         $this->billings = new ArrayCollection();
         $this->images = new ArrayCollection();
         $this->translates = new ArrayCollection();
+        $this->sites = new ArrayCollection();
     }
 
     public function setId(?int $id)
@@ -154,30 +154,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
-    }
-
-    public function getLang(): array
-    {
-        return $this->lang;
-    }
-
-    public function setLang(array $lang): self
-    {
-        $this->lang = $lang;
-
-        return $this;
-    }
-
-    public function getContextCategory(): array
-    {
-        return $this->context_category;
-    }
-
-    public function setContextCategory(?array $context_category): self
-    {
-        $this->context_category = $context_category;
-
-        return $this;
     }
 
     /**
@@ -313,6 +289,60 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->account = $account;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Site>
+     */
+    public function getSites(): Collection
+    {
+        return $this->sites;
+    }
+
+    public function addSite(Site $site): self
+    {
+        if (!$this->sites->contains($site)) {
+            $this->sites->add($site);
+            $site->setCustomer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSite(Site $site): self
+    {
+        if ($this->sites->removeElement($site)) {
+            // set the owning side to null (unless already changed)
+            if ($site->getCustomer() === $this) {
+                $site->setCustomer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addQuickAPIToken(int $term): self
+    {
+        $hash = Helper::generateAPITokenHash($this->getEmail());
+        $this->addAPIToken(
+            (new APIToken())->setIsValid(true)
+                ->setDate(new DateTime('now +' . $term . ' year'))
+                ->setToken($hash)
+        );
+
+        return $this;
+    }
+
+    public function getCompany(): ?string
+    {
+        return $this->company;
+    }
+
+    public function setCompany(?string $company): self
+    {
+        $this->company = $company;
 
         return $this;
     }

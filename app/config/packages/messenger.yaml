@@ -8,6 +8,7 @@ framework:
             # async: '%env(MESSENGER_TRANSPORT_DSN)%'
             # failed: 'doctrine://default?queue_name=failed'
             # sync: 'sync://'
+            source: "%env(SOURCE_MESSENGER_TRANSPORT_DSN)%"
             parse: "%env(PARSER_MESSENGER_TRANSPORT_DSN)%"
             spread: "%env(SPREAD_MESSENGER_TRANSPORT_DSN)%"
             image: "%env(IMAGE_MESSENGER_TRANSPORT_DSN)%"

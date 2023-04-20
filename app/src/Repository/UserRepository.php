@@ -66,6 +66,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $query = $this->createQueryBuilder('u')
             ->innerJoin('u.apiTokens', 't', Join::WITH, "t.is_valid = true AND t.date >= CURRENT_TIMESTAMP()")
             ->innerJoin('u.account', 'a', Join::WITH, "a.balance > " . AccountService::MIN_BALANCE)
+            ->innerJoin('u.site', 's', Join::WITH, 's.is_valid = true')
             ->orderBy('u.id', 'DESC');
 
         foreach ($categories as $key => $category) {
@@ -96,15 +97,5 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         }
 
         return $user;
-    }
-
-    public function addApiToken(User $user, int $term): User
-    {
-        $hash = Helper::generateAPITokenHash($user->getEmail());
-        return $user->addAPIToken(
-                (new APIToken())->setIsValid(true)
-                    ->setDate(new DateTime('now +' . $term . ' year'))
-                    ->setToken($hash)
-        );
     }
 }

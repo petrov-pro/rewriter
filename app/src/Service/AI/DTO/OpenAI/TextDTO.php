@@ -37,7 +37,7 @@ final class TextDTO implements TextInterface
         $this->usage = $usage;
     }
 
-    public function getCost(): int
+    public function getToken(): int
     {
         return $this->usage->getTotalTokens();
     }

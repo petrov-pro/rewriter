@@ -11,7 +11,7 @@ use InvalidArgumentException;
 class AccountService
 {
 
-    public const MIN_BALANCE = 500;
+    public const MIN_BALANCE = 100;
 
     public function __construct(
         private AccountRepository $accountRepository,

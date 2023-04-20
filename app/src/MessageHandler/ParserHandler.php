@@ -1,11 +1,11 @@
 <?php
-namespace App\Service\Parser;
+namespace App\MessageHandler;
 
 use App\Entity\Context;
 use App\MessageHandler\Message\ContextInterface;
 use App\Service\ContextService;
-use App\Service\HanlderMessageInterface;
-use App\Service\SpreadHandler;
+use App\Service\Parser\NotFoundParserException;
+use App\Service\Parser\ParserFactory;
 use App\Util\NormalizeText;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -39,6 +39,8 @@ class ParserHandler implements HanlderMessageInterface
 
             $siteParser = $this->parserFactory->create($message->getSourceName());
             $fullText = $siteParser->parser($message->getSourceUrl());
+            
+            
             $message->setText(NormalizeText::handle($fullText));
             $this->contextService->updateStatusText($message->getId(), Context::STATUS_FINISH, $message->getText());
 
