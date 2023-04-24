@@ -2,11 +2,8 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
-use App\Repository\UserRepository;
-use Nette\Utils\Arrays;
+use App\Repository\SiteRepository;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 
 class SpreadHandler implements HanlderMessageInterface
 {
@@ -15,10 +12,7 @@ class SpreadHandler implements HanlderMessageInterface
 
     public function __construct(
         private LoggerInterface $logger,
-        private UserRepository $userRepository,
-        private MessageBusInterface $bus,
-        private array $availableLangs,
-        private bool $needCreateImage
+        private SiteRepository $siteRepository,
     )
     {
         
@@ -32,30 +26,13 @@ class SpreadHandler implements HanlderMessageInterface
                 'title' => $message->getTitle()
             ]
         );
-        $users = $this->userRepository->findAllActive($message->getCategory());
-        
-        foreach ($users as $user) {
-            foreach ($user->getLang() as $lang) {
-                if (!Arrays::contains($this->availableLangs, $lang)) {
-                    $this->logger->warning('Skip unsupported lang: ' . $lang);
-                    continue;
-                }
 
-                $message->setLang($lang)
-                    ->setUserId($user->getId());
+        $site = $this->siteRepository->find($message->getSiteId());
 
-                $this->bus->dispatch(
-                    $message,
-                    [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
-                );
-            }
+        if (!$site->isSend()) {
+            $this->logger->info('Site has disable option is_sent: ' . $site->getId());
 
-            if ($this->needCreateImage) {
-                $this->bus->dispatch(
-                    $message,
-                    [new TransportNamesStamp([ImageHandler::TRANSPORT_NAME])]
-                );
-            }
+            return;
         }
 
         $this->logger->info('Spread finished.');

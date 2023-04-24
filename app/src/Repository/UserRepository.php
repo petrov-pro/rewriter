@@ -66,11 +66,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $query = $this->createQueryBuilder('u')
             ->innerJoin('u.apiTokens', 't', Join::WITH, "t.is_valid = true AND t.date >= CURRENT_TIMESTAMP()")
             ->innerJoin('u.account', 'a', Join::WITH, "a.balance > " . AccountService::MIN_BALANCE)
-            ->innerJoin('u.site', 's', Join::WITH, 's.is_valid = true')
+            ->innerJoin('u.sites', 's', Join::WITH, 's.is_valid = true')
             ->orderBy('u.id', 'DESC');
 
         foreach ($categories as $key => $category) {
-            $query->orWhere($query->expr()->like('u.context_category', ":category$key"));
+            $query->orWhere($query->expr()->like('s.category', ":category$key"));
             $query->setParameter(":category$key", '%' . $category . '%');
         }
 

@@ -45,6 +45,9 @@ class Site
     #[ORM\Column]
     private ?bool $is_valid = true;
 
+    /**
+     * @var string[]
+     */
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(nullable: true)]
     private array $setting = [];
@@ -68,6 +71,12 @@ class Site
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(type: Types::SIMPLE_ARRAY)]
     private array $category = [];
+
+    #[Assert\NotBlank()]
+    #[Assert\Lang()]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
+    #[ORM\Column(type: Types::SIMPLE_ARRAY)]
+    private array $lang = [];
 
     #[Assert\Type('bool')]
     #[ORM\Column]
@@ -154,7 +163,7 @@ class Site
         return $this;
     }
 
-    public function isIsImage(): ?bool
+    public function isImage(): ?bool
     {
         return $this->is_image;
     }
@@ -250,7 +259,7 @@ class Site
         return $this;
     }
 
-    public function isIsSend(): ?bool
+    public function isSend(): ?bool
     {
         return $this->is_send;
     }
@@ -258,6 +267,18 @@ class Site
     public function setIsSend(bool $is_send): self
     {
         $this->is_send = $is_send;
+
+        return $this;
+    }
+
+    public function getLang(): array
+    {
+        return $this->lang;
+    }
+
+    public function setLang(array $lang): self
+    {
+        $this->lang = $lang;
 
         return $this;
     }

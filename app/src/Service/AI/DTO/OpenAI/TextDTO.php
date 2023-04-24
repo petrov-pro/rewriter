@@ -6,7 +6,7 @@ use App\Service\AI\DTO\TextInterface;
 final class TextDTO implements TextInterface
 {
 
-    public const COST = 0.12; //or 0.06
+    public const COST = 0.002; 
 
     private string $id;
     private string $object;

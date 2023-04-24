@@ -4,6 +4,9 @@ namespace App\Controller\Api;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Util\APIEnum;
+use Nelmio\ApiDocBundle\Annotation\Areas;
+use OpenApi\Attributes as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,6 +14,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[OA\Tag(name: 'Token')]
+#[OA\Response(
+        response: Response::HTTP_OK,
+        description: 'Successful response',
+        content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_SHOW->value])
+    )]
+#[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Something was wrong',
+        content: new OA\JsonContent(
+            [new OA\Examples(example: 'Example error', summary: '', value: '{"status":"error","message":"Message of error"}')]
+        )
+    )
+]
 #[Route(path: ['', '/api/v1/token'])]
 class TokenController extends AbstractController
 {
@@ -22,6 +39,22 @@ class TokenController extends AbstractController
         
     }
 
+    #[Areas(['manager'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                new OA\Property(
+                    property: 'email',
+                    type: 'string'
+                ),
+                new OA\Property(
+                    property: 'term',
+                    type: 'int'
+                )
+                ]
+            )
+        )]
     #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'POST')]
     public function regenerate(Request $request): JsonResponse
@@ -40,6 +73,18 @@ class TokenController extends AbstractController
         ]);
     }
 
+    #[Areas(['manager'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                new OA\Property(
+                    property: 'email',
+                    type: 'string'
+                )
+                ]
+            )
+        )]
     #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'DELETE')]
     public function delete(Request $request): JsonResponse

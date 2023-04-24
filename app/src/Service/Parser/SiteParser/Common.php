@@ -1,7 +1,6 @@
 <?php
 namespace App\Service\Parser\SiteParser;
 
-use App\Service\FlareSolverrService;
 use App\Service\Parser\SiteParserInterface;
 use App\Service\Parser\StructureParserInterface;
 use Exception;
@@ -92,10 +91,34 @@ class Common implements SiteParserInterface
             ],
             'supportTagWithAttribute' => []
         ],
+        'Fox Business' => [
+            'pattern' => "//div[contains(@class, 'article-body')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'READ MORE ABOUT'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Blockworks' => [
+            'pattern' => "//section[contains(@class, 'w-full')]//div",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'Get the day’s top crypto news and insights delivered to your ',
+                'Want alpha sent directly to your inbox? ',
+                'Can’t wait? Get our news the fastest way possible'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Invezz' => [
+            'pattern' => "//div[contains(@class, 'font-source')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
     ];
 
     public function __construct(
-        private FlareSolverrService $capture,
         private StructureParserInterface $parser
     )
     {
@@ -114,14 +137,14 @@ class Common implements SiteParserInterface
         return false;
     }
 
-    public function parser(string $url): string
+    public function parser(string $data): string
     {
         if (!$this->currentRule) {
             throw new InvalidArgumentException('Current rule for provider context not define.');
         }
 
         $content = $this->parser->proccess(
-            $this->capture->getData($url),
+            $data,
             $this->currentRule['pattern'],
             $this->currentRule['allowTag'],
             $this->currentRule['skipWords'],

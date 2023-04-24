@@ -4,6 +4,7 @@ namespace App\MessageHandler;
 use App\Entity\Image;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ImageRepository;
+use App\Repository\SiteRepository;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Service\AI\AIInterface;
@@ -26,6 +27,7 @@ class ImageHandler implements HanlderMessageInterface
         private ImageRepository $imageRepository,
         private UserRepository $userRepository,
         private ContextService $contextService,
+        private SiteRepository $siteRepository,
         private TagAwareCacheInterface $cache,
         private AccountService $accountService,
         private bool $needCreateImage,
@@ -58,9 +60,9 @@ class ImageHandler implements HanlderMessageInterface
                 return;
             }
 
-            $user = $this->userRepository->findOrThrow($message->getUserId());
+            $site = $this->siteRepository->find($message->getSiteId());
 
-            if (!$user->isNeedImage()) {
+            if (!$site->isImage()) {
                 $this->logger->info('Image skip by user settings',
                     [
                         'source' => $message->getSourceName(),
@@ -115,7 +117,8 @@ class ImageHandler implements HanlderMessageInterface
             $image = (new Image())->setData($imageAI->getImages())
                 ->setKeywords($keywords->getText())
                 ->setContext($context)
-                ->setCustomer($user);
+                ->setSite($site)
+                ->setCustomer($this->userRepository->findOrThrow($message->getUserId()));
             $this->imageRepository->save($image, false);
 
             $this->accountService->withdraw(

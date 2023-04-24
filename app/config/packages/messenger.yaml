@@ -13,6 +13,7 @@ framework:
             spread: "%env(SPREAD_MESSENGER_TRANSPORT_DSN)%"
             image: "%env(IMAGE_MESSENGER_TRANSPORT_DSN)%"
             rewrite: "%env(REWRITE_MESSENGER_TRANSPORT_DSN)%"
+            order: "%env(ORDER_MESSENGER_TRANSPORT_DSN)%"
             
             
 

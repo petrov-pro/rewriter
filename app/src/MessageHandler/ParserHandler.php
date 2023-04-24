@@ -6,6 +6,7 @@ use App\MessageHandler\Message\ContextInterface;
 use App\Service\ContextService;
 use App\Service\Parser\NotFoundParserException;
 use App\Service\Parser\ParserFactory;
+use App\Service\Thief\ThiefInterface;
 use App\Util\NormalizeText;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -21,7 +22,8 @@ class ParserHandler implements HanlderMessageInterface
         private LoggerInterface $logger,
         private MessageBusInterface $bus,
         private ParserFactory $parserFactory,
-        private ContextService $contextService
+        private ContextService $contextService,
+        private ThiefInterface $capture
     )
     {
         
@@ -37,19 +39,19 @@ class ParserHandler implements HanlderMessageInterface
                 ]
             );
 
+            $sourceData = $this->capture->getData($message->getSourceUrl());
             $siteParser = $this->parserFactory->create($message->getSourceName());
-            $fullText = $siteParser->parser($message->getSourceUrl());
-            
-            
+            $fullText = $siteParser->parser($sourceData);
+
             $message->setText(NormalizeText::handle($fullText));
             $this->contextService->updateStatusText($message->getId(), Context::STATUS_FINISH, $message->getText());
 
             $this->bus->dispatch(
                 $message,
-                [new TransportNamesStamp([SpreadHandler::TRANSPORT_NAME])]
+                [new TransportNamesStamp([OrderHandler::TRANSPORT_NAME])]
             );
 
-            $this->logger->info('Sent to rewrite q content message',
+            $this->logger->info('Parser finished content message',
                 [
                     'source' => $message->getSourceName(),
                     'title' => $message->getTitle()

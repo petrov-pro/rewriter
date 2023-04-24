@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 class OrderHandler implements HanlderMessageInterface
 {
 
-    public const TRANSPORT_NAME = 'spread';
+    public const TRANSPORT_NAME = 'order';
 
     public function __construct(
         private LoggerInterface $logger,
@@ -26,28 +26,31 @@ class OrderHandler implements HanlderMessageInterface
 
     public function handle(ContextInterface $message): void
     {
-        $this->logger->info('Spread get content message',
+        $this->logger->info('Order get content message',
             [
                 'source' => $message->getSourceName(),
                 'title' => $message->getTitle()
             ]
         );
         $users = $this->userRepository->findAllActive($message->getCategory());
-        
+
         foreach ($users as $user) {
-            foreach ($user->getLang() as $lang) {
-                if (!Arrays::contains($this->availableLangs, $lang)) {
-                    $this->logger->warning('Skip unsupported lang: ' . $lang);
-                    continue;
+            foreach ($user->getSites() as $site) {
+                foreach ($site->getLang() as $lang) {
+                    if (!Arrays::contains($this->availableLangs, $lang)) {
+                        $this->logger->warning('Skip unsupported lang: ' . $lang);
+                        continue;
+                    }
+
+                    $message->setLang($lang)
+                        ->setUserId($user->getId())
+                        ->setSiteId($site->getId());
+
+                    $this->bus->dispatch(
+                        $message,
+                        [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
+                    );
                 }
-
-                $message->setLang($lang)
-                    ->setUserId($user->getId());
-
-                $this->bus->dispatch(
-                    $message,
-                    [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
-                );
             }
 
             if ($this->needCreateImage) {
@@ -58,6 +61,6 @@ class OrderHandler implements HanlderMessageInterface
             }
         }
 
-        $this->logger->info('Spread finished.');
+        $this->logger->info('Order finished.');
     }
 }

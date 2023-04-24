@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Site;
@@ -16,6 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SiteRepository extends ServiceEntityRepository
 {
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Site::class);
@@ -39,28 +39,13 @@ class SiteRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Site[] Returns an array of Site objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('s.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findOrThrow(int $siteId): Site
+    {
+        $site = $this->find($siteId);
+        if (!$site) {
+            throw new \Exception('Can not find site: ' . $siteId);
+        }
 
-//    public function findOneBySomeField($value): ?Site
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return $site;
+    }
 }

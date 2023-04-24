@@ -11,7 +11,9 @@ use InvalidArgumentException;
 class AccountService
 {
 
-    public const MIN_BALANCE = 100;
+    public const MIN_BALANCE = 100000;
+    //one dollar cost 1000000
+    public const DIMENSION_TOKEN = 1000000;
 
     public function __construct(
         private AccountRepository $accountRepository,
@@ -88,6 +90,7 @@ class AccountService
 
     public function deposit(int $amount, int $customerId, bool $flush = false): Account
     {
+        $amount = $amount * self::DIMENSION_TOKEN;
         $account = $this->findAccount($customerId);
         $account->addBalance($amount)
             ->addBilling((new Billing())

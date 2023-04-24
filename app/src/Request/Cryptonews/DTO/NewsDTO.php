@@ -21,8 +21,11 @@ class NewsDTO implements ContextInterface
     private string $sentiment;
     private string $type;
     private string $lang = 'en';
+    private string $original_lang = 'en';
     private int $id;
     private int $user_id;
+    private int $site_id;
+    private string $provider;
 
     public function getSourceUrl(): string
     {
@@ -180,6 +183,33 @@ class NewsDTO implements ContextInterface
     public function setCategory(array $category): self
     {
         $this->topics = $category;
+        return $this;
+    }
+
+    public function getSiteId(): int
+    {
+        return $this->site_id;
+    }
+
+    public function setSiteId(int $site_id): self
+    {
+        $this->site_id = $site_id;
+        return $this;
+    }
+
+    public function getOriginalLang(): string
+    {
+        return $this->original_lang;
+    }
+
+    public function getProvider(): string
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(string $provider): self
+    {
+        $this->provider = $provider;
         return $this;
     }
 }

@@ -13,7 +13,8 @@ class MessageHandler
         private RewriteHandler $rewriteHandler,
         private SpreadHandler $spreadHandler,
         private ImageHandler $imageHandler,
-        private ContextHandler $contextHandler
+        private ContextHandler $contextHandler,
+        private OrderHandler $orderHandler
     )
     {
         
@@ -31,10 +32,10 @@ class MessageHandler
         $this->parserHandler->handle($message);
     }
 
-    #[AsMessageHandler(fromTransport: SpreadHandler::TRANSPORT_NAME)]
-    public function handleSpread(ContextInterface $message)
+    #[AsMessageHandler(fromTransport: OrderHandler::TRANSPORT_NAME)]
+    public function handleOrder(ContextInterface $message)
     {
-        $this->spreadHandler->handle($message);
+        $this->orderHandler->handle($message);
     }
 
     #[AsMessageHandler(fromTransport: ImageHandler::TRANSPORT_NAME)]
@@ -47,5 +48,11 @@ class MessageHandler
     public function handleRewrite(ContextInterface $message)
     {
         $this->rewriteHandler->handle($message);
+    }
+
+    #[AsMessageHandler(fromTransport: SpreadHandler::TRANSPORT_NAME)]
+    public function handleSpread(ContextInterface $message)
+    {
+        $this->spreadHandler->handle($message);
     }
 }

@@ -68,11 +68,15 @@ class Context
     #[ORM\OneToMany(mappedBy: 'context', targetEntity: Translate::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $translates;
 
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
+    #[ORM\OneToMany(mappedBy: 'context', targetEntity: Image::class, orphanRemoval: true)]
+    private Collection $images;
+
     #[ORM\Column(length: 10)]
     private ?string $status = null;
 
-    #[ORM\OneToMany(mappedBy: 'context', targetEntity: Image::class, orphanRemoval: true)]
-    private Collection $images;
+    #[ORM\Column(length: 255)]
+    private ?string $provider = null;
 
     public function __construct()
     {
@@ -285,6 +289,18 @@ class Context
                 $image->setContext(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getProvider(): ?string
+    {
+        return $this->provider;
+    }
+
+    public function setProvider(string $provider): self
+    {
+        $this->provider = $provider;
 
         return $this;
     }

@@ -41,6 +41,7 @@ class ContextHandler
                         continue;
                     }
 
+                    $message->setProvider($contextProvider->getProviderName());
                     $contextEntity = $this->contextService->create($message);
                     $message->setId($contextEntity->getId());
 

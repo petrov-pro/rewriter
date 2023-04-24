@@ -1,5 +1,5 @@
 <?php
-namespace App\Service;
+namespace App\Service\Thief;
 
 use App\Request\FlareSolverr\FlareSolverrRequest;
 use Exception;
@@ -7,7 +7,7 @@ use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\ClientException;
 
-class FlareSolverrService
+class FlareSolverrService implements ThiefInterface
 {
 
     private const STATUS = 'ok';

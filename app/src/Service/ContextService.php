@@ -5,6 +5,7 @@ use App\Entity\Context;
 use App\Entity\Translate;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ContextRepository;
+use App\Repository\SiteRepository;
 use App\Repository\TranslateRepository;
 use App\Repository\UserRepository;
 use App\Util\SentimentEnum;
@@ -22,7 +23,8 @@ class ContextService
         private TranslateRepository $translateRepository,
         private UserRepository $userRepository,
         private ValidatorInterface $validator,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private SiteRepository $siteRepository
     )
     {
         
@@ -67,6 +69,7 @@ class ContextService
             ->setTitle($context->getTitle())
             ->setStatus(Context::STATUS_INIT)
             ->setCategory($context->getCategory())
+            ->setProvider($context->getProvider())
             ->setType($this->prepareType($context->getType()));
 
         $this->save($contextEntity, true);
@@ -77,6 +80,7 @@ class ContextService
     public function saveModifyContext(
         int $id,
         int $userId,
+        int $siteId,
         string $text,
         string $textDescription,
         string $textTitle,
@@ -92,6 +96,7 @@ class ContextService
             ->setText($text)
             ->setCustomer($this->userRepository->findOrThrow($userId))
             ->setToken($token)
+            ->setSite($this->siteRepository->findOrThrow($siteId))
             ->setLang($transletTo);
 
         $contextEntity->addTranslate($translate);
@@ -139,7 +144,7 @@ class ContextService
     {
         $context = $this->contextRepository->find($id);
         if (!$context) {
-            throw new InvalidArgumentException('Not found entity');
+            throw new InvalidArgumentException('Not found context: ' . $id);
         }
 
         return $context;

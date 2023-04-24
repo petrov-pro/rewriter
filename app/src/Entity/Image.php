@@ -2,8 +2,10 @@
 namespace App\Entity;
 
 use App\Repository\ImageRepository;
+use App\Util\APIEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ImageRepository::class)]
 #[ORM\UniqueConstraint(
@@ -21,9 +23,11 @@ class Image
     #[ORM\JoinColumn(nullable: false)]
     private ?Context $context = null;
 
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $keywords = null;
 
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::SIMPLE_ARRAY)]
     private array $data = [];
 

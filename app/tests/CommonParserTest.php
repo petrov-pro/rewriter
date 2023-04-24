@@ -1,7 +1,7 @@
 <?php
 namespace App\Tests;
 
-use App\Service\FlareSolverrService;
+use App\Service\Thief\FlareSolverrService;
 use App\Service\Parser\ParserFactory;
 use App\Service\Parser\SiteParser\Common;
 use App\Service\Parser\StructureParserInterface;

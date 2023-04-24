@@ -1,0 +1,28 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Content Auto Supply
+            description: An API that delivers content automatically is a programmatic interface that allows developers to retrieve data and media files from a server in an automated manner. This type of API can be used to automatically populate websites, mobile applications, and other digital platforms with fresh content without requiring manual updates. It typically involves sending a request to the API, which returns a response with the requested content in a structured format such as JSON.
+            version: 1.0.0
+        components:
+                securitySchemes:
+                    Bearer:
+                        type: http
+                        scheme: bearer
+    areas: # to filter documented areas
+        default:
+               disable_default_routes: true
+               with_annotation: true
+        api:
+           path_patterns: [^/api(?!/doc$)]
+           with_annotation: true
+           
+        manager:
+                path_patterns: [ ^/api(?!/doc$) ]
+                with_annotation: true
+                documentation:
+                          info:
+                              title: Content Auto Supply
+                              description: Admin area, allow create user, manage account and token. Need permission admin.
+                              version: 1.0.0
+            

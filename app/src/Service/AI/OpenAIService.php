@@ -1,7 +1,9 @@
 <?php
 namespace App\Service\AI;
 
+use App\Service\AccountService;
 use App\Service\AI\DTO\ImageInterface;
+use App\Service\AI\DTO\OpenAI\Chat\ChatDTO;
 use App\Service\AI\DTO\OpenAI\ImageDTO;
 use App\Service\AI\DTO\OpenAI\TextDTO;
 use App\Service\AI\DTO\TextInterface;
@@ -39,16 +41,17 @@ class OpenAIService implements AIInterface
     public function rewrite(mixed $idt, string $textRewrite, string $translateTo = '', string $type = ''): TextInterface
     {
         $modificator = match ($type) {
-            HtmlTagEnum::TAG_AI->value => 'use html tags',
-            HtmlTagEnum::TAG_DEFAULT->value => 'leave tags',
+            HtmlTagEnum::TAG_AI->value => ' Text must be formatted with html tags: <p> <span>',
+            HtmlTagEnum::TAG_DEFAULT->value => '',
             HtmlTagEnum::TAG_NOT_USE->value => '',
-            default => 'use html tags next: ' . $type,
+            default => ' Text must be formatted with html tags: ' . $type,
         };
 
         return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo, $modificator), function (ItemInterface $item) use ($textRewrite, $translateTo, $modificator) {
                 $item->expiresAfter(self::CACHE_TIME);
+                $system = 'Rewrite.' . ($translateTo ? ' Translate into ' . $translateTo . '.' : '') . ($modificator ? $modificator : '');
 
-                return $this->completion('Rewrite' . ($modificator ? ' and ' . $modificator : '') . ($translateTo ? ' and translate to ' . $translateTo : '') . ': ' . $textRewrite);
+                return $this->chat($textRewrite, $system);
             });
     }
 
@@ -57,7 +60,7 @@ class OpenAIService implements AIInterface
         return $this->cache->get($this->makeHash($idt, $title, $count), function (ItemInterface $item) use ($title, $count) {
                 $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->completion("Make $count main keywords make in one string over a comma: " . $title);
+                return $this->chat($title, "Make $count main keywords, make in one string over a comma: ");
             });
     }
 
@@ -66,7 +69,7 @@ class OpenAIService implements AIInterface
         return $this->cache->get($this->makeHash($idt, $text, $lang), function (ItemInterface $item) use ($text, $lang) {
                 $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->completion("Translate to $lang, leave tags: " . $text);
+                return $this->chat($text, "Translate to $lang, leave tags: ");
             });
     }
 
@@ -75,7 +78,7 @@ class OpenAIService implements AIInterface
         return $this->cache->get($this->makeHash($idt, $prompt, $type), function (ItemInterface $item) use ($prompt, $type) {
                 $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->image($prompt, $type);
+                return $this->image('For create the image, use this words: ' . $prompt, $type);
             });
     }
 
@@ -94,11 +97,11 @@ class OpenAIService implements AIInterface
                 TypeDataEnum::TEXT => function () use ($token) {
                     $supposedToken = $this->findSupposedToken($token);
 
-                    return ((int) ($supposedToken / self::DIMENSION)) * TextDTO::COST;
+                    return (($supposedToken / self::DIMENSION) * TextDTO::COST) * AccountService::DIMENSION_TOKEN;
                 },
                 TypeDataEnum::IMAGE => function () use ($token) {
 
-                    return ((int) $token) * ImageDTO::COST;
+                    return ($token * ImageDTO::COST) * AccountService::DIMENSION_TOKEN;
                 },
                 default => throw new Exception('UnSupported type for cost'),
             });
@@ -107,8 +110,8 @@ class OpenAIService implements AIInterface
     public function findCost(TypeDataEnum $type, int $token): int
     {
         return (int) match ($type) {
-                TypeDataEnum::TEXT => ($token / self::DIMENSION) * TextDTO::COST,
-                TypeDataEnum::IMAGE => $token * ImageDTO::COST,
+                TypeDataEnum::TEXT => (($token / self::DIMENSION) * TextDTO::COST) * AccountService::DIMENSION_TOKEN,
+                TypeDataEnum::IMAGE => ($token * ImageDTO::COST) * AccountService::DIMENSION_TOKEN,
                 default => throw new Exception('UnSupported type for cost'),
             };
     }
@@ -164,23 +167,61 @@ class OpenAIService implements AIInterface
     private function completion(string $prompt): TextInterface
     {
         try {
-            $supposedToken = $this->findMaxAvailableToken($prompt);
+            $maxToken = $this->findMaxAvailableToken($prompt);
             $complete = $this->openAI->completion([
                 'model' => 'text-davinci-003',
                 'prompt' => $prompt,
                 'temperature' => 0.9,
-                'max_tokens' => $supposedToken,
+                'max_tokens' => $maxToken,
                 'frequency_penalty' => 0,
                 'presence_penalty' => 0.6,
             ]);
 
             $this->logger->debug("Response openIA completion", [
-                'supposed_token' => $supposedToken,
+                'max_token_possible' => $maxToken,
                 'response' => $complete,
                 'text_incoming' => $prompt
             ]);
 
             return $this->serializer->deserialize($complete, TextDTO::class, JsonEncoder::FORMAT, [
+                    AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
+            ]);
+        } catch (Exception $ex) {
+            $this->logger->error($ex->getMessage());
+            throw $ex;
+        }
+    }
+
+    private function chat(string $prompt, string $system): TextInterface
+    {
+        try {
+            $maxToken = $this->findMaxAvailableToken($prompt);
+            $complete = $this->openAI->chat([
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        "role" => "system",
+                        "content" => $system
+                    ],
+                    [
+                        "role" => "user",
+                        "content" => $prompt
+                    ]
+                ],
+                'temperature' => 1.0,
+                'max_tokens' => $maxToken,
+                'frequency_penalty' => 0,
+                'presence_penalty' => 0,
+            ]);
+
+            $this->logger->debug("Response openIA completion", [
+                'max_token_possible' => $maxToken,
+                'response' => $complete,
+                'text_incoming' => $prompt,
+                'system' => $system
+            ]);
+
+            return $this->serializer->deserialize($complete, ChatDTO::class, JsonEncoder::FORMAT, [
                     AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
             ]);
         } catch (Exception $ex) {

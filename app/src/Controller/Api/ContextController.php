@@ -1,9 +1,13 @@
 <?php
 namespace App\Controller\Api;
 
+use App\Entity\Context;
 use App\Repository\ContextRepository;
 use App\Util\APIEnum;
 use App\Util\Helper;
+use Nelmio\ApiDocBundle\Annotation\Areas;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,6 +17,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
+#[OA\Tag(name: 'Content')]
+#[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Something was wrong',
+        content: new OA\JsonContent(
+            [new OA\Examples(example: 'Example error', summary: '', value: '{"status":"error","message":"Message of error"}')]
+        )
+    )
+]
 #[Route(path: ['', '/api/v1/context'])]
 class ContextController extends AbstractController
 {
@@ -22,8 +35,26 @@ class ContextController extends AbstractController
         
     }
 
+    #[Areas(['api'])]
+    #[OA\Response(
+            response: Response::HTTP_OK,
+            description: 'Successful response',
+            content: new Model(type: Context::class, groups: [APIEnum::GROUP_NAME_SHOW->value])
+        )]
+    #[OA\QueryParameter(
+            name: 'page',
+            description: 'Page content'
+        )]
+    #[OA\QueryParameter(
+            name: 'limit',
+            description: 'Limit content on the page'
+        )]
+    #[OA\QueryParameter(
+            name: 'source',
+            description: 'Spurce of content'
+        )]
     #[Route(path: ['', '/'], methods: 'GET')]
-    public function get(Request $request, ContextRepository $repository): JsonResponse
+    public function get(Request $request, ContextRepository $repository, string $page): JsonResponse
     {
         $page = $request->query->get('page') ?? 0;
         $limit = $request->query->get('limit') ?? 10;

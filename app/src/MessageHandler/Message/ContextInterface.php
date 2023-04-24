@@ -39,4 +39,14 @@ interface ContextInterface
     public function setText(string $text): self;
 
     public function setLang(string $lang): self;
+
+    public function getSiteId(): int;
+
+    public function setSiteId(int $id): self;
+
+    public function getOriginalLang(): string;
+
+    public function getProvider(): string;
+
+    public function setProvider(string $provider): self;
 }

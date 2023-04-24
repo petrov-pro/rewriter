@@ -5,6 +5,9 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Util\APIEnum;
+use Nelmio\ApiDocBundle\Annotation\Areas;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,6 +22,20 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[OA\Tag(name: 'User')]
+#[OA\Response(
+        response: Response::HTTP_OK,
+        description: 'Successful response',
+        content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_SHOW->value])
+    )]
+#[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Something was wrong',
+        content: new OA\JsonContent(
+            [new OA\Examples(example: 'Example error', summary: '', value: '{"status":"error","message":"Message of error"}')]
+        )
+    )
+]
 #[Route(path: ['', '/api/v1/user'])]
 class UserController extends AbstractController
 {
@@ -34,6 +51,7 @@ class UserController extends AbstractController
         
     }
 
+    #[Areas(['api'])]
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
@@ -42,6 +60,11 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Areas(['manager'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_CREATE->value])
+        )]
     #[IsGranted(User::ROLE_ADMIN)]
     #[Route(path: ['', '/'], methods: 'POST')]
     public function create(Request $request): JsonResponse
@@ -70,6 +93,11 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Areas(['api'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_UPDATE->value])
+        )]
     #[Route(path: ['', '/'], methods: 'PUT')]
     public function update(Request $request): JsonResponse
     {

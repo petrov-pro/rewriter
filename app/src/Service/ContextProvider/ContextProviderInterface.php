@@ -12,4 +12,5 @@ interface ContextProviderInterface
     public function getContexts(): array;
 
     public function getProviderName(): string;
+    
 }

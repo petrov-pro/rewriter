@@ -6,6 +6,9 @@ use App\Entity\User;
 use App\Repository\SiteRepository;
 use App\Util\APIEnum;
 use InvalidArgumentException;
+use Nelmio\ApiDocBundle\Annotation\Areas;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +21,20 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[OA\Tag(name: 'Site')]
+#[OA\Response(
+        response: Response::HTTP_OK,
+        description: 'Successful response',
+        content: new Model(type: Site::class, groups: [APIEnum::GROUP_NAME_SHOW->value])
+    )]
+#[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Something was wrong',
+        content: new OA\JsonContent(
+            [new OA\Examples(example: 'Example error', summary: '', value: '{"status":"error","message":"Message of error"}')]
+        )
+    )
+]
 #[Route(path: ['', '/api/v1/site'])]
 class SiteController extends AbstractController
 {
@@ -32,6 +49,7 @@ class SiteController extends AbstractController
         
     }
 
+    #[Areas(['api'])]
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
@@ -40,6 +58,11 @@ class SiteController extends AbstractController
         ]);
     }
 
+    #[Areas(['api'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new Model(type: Site::class, groups: [APIEnum::GROUP_NAME_CREATE->value])
+        )]
     #[Route(path: ['', '/'], methods: 'POST')]
     public function create(Request $request): JsonResponse
     {
@@ -58,6 +81,11 @@ class SiteController extends AbstractController
         ]);
     }
 
+    #[Areas(['api'])]
+    #[OA\RequestBody(
+            required: true,
+            content: new Model(type: Site::class, groups: [APIEnum::GROUP_NAME_UPDATE->value])
+        )]
     #[Route(path: ['', '/{id}'], methods: 'PUT')]
     public function update(Site $site, Request $request): JsonResponse
     {
@@ -76,8 +104,9 @@ class SiteController extends AbstractController
         ]);
     }
 
+    #[Areas(['api'])]
     #[Route(path: ['', '/{id}'], methods: 'DELETE')]
-    public function delete(Site $site, Request $request): JsonResponse
+    public function delete(Site $site): JsonResponse
     {
         $this->isUserEntity($site);
         $this->siteRepository->remove($site, true);

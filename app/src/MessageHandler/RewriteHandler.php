@@ -2,7 +2,7 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
-use App\Repository\UserRepository;
+use App\Repository\SiteRepository;
 use App\Service\AccountService;
 use App\Service\AI\AIInterface;
 use App\Service\AI\TooMuchTokenException;
@@ -12,6 +12,8 @@ use App\Util\HtmlTagEnum;
 use App\Util\TypeDataEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class RewriteHandler implements HanlderMessageInterface
@@ -23,9 +25,10 @@ class RewriteHandler implements HanlderMessageInterface
         private ContextService $contextService,
         private AIInterface $AIService,
         private AccountService $accountService,
+        private SiteRepository $siteRepository,
         private LoggerInterface $logger,
+        private MessageBusInterface $bus,
         private TagAwareCacheInterface $cache,
-        private UserRepository $userRepository
     )
     {
         
@@ -82,6 +85,10 @@ class RewriteHandler implements HanlderMessageInterface
             );
 
             $this->cache->invalidateTags([APIEnum::CACHE_TAG_USER->value . $message->getUserId()]);
+            $this->bus->dispatch(
+                $message,
+                [new TransportNamesStamp([SpreadHandler::TRANSPORT_NAME])]
+            );
         } catch (TooMuchTokenException $ex) {
             $this->logger->info($ex->getMessage(), [
                 'message_id' => $message->getId()
@@ -94,21 +101,23 @@ class RewriteHandler implements HanlderMessageInterface
 
     private function rewriteProcess(ContextInterface $message): void
     {
-        $user = $this->userRepository->findOrThrow($message->getUserId());
+        $translateLang = ($message->getLang() !== $message->getOriginalLang()) ? $message->getLang() : '';
+        $site = $this->siteRepository->find($message->getSiteId());
         $text = $this->AIService->rewrite(
             $message->getUserId(),
-            ($user->getHtmlTag() === HtmlTagEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
-            $message->getLang(),
-            $user->getHtmlTag()
+            ($site->getHtmlTag() === HtmlTagEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
+            $translateLang,
+            $site->getHtmlTag()
         );
-        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getLang(), HtmlTagEnum::TAG_NOT_USE->value);
-        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getLang(), HtmlTagEnum::TAG_NOT_USE->value);
+        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
+        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
         $token = $text->getToken() + $textDescription->getToken() + $textTitle->getToken();
 
         ///transactional
         $this->contextService->saveModifyContext(
             $message->getId(),
             $message->getUserId(),
+            $message->getSiteId(),
             $text->getText(),
             $textDescription->getText(),
             $textTitle->getText(),

@@ -48,4 +48,5 @@ class CryptoNewsService implements ContextProviderInterface
     {
         return self::class;
     }
+    
 }
