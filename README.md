@@ -6,5 +6,5 @@ Rewriter - application which use openAI and new api for create rewrite content
 2 /app copy .env.dist .env
 3 run docker compose -f DOCKER_FILE up --build
 
-For control supervisorctl status
-
+For control workers - supervisorctl status
+For debug setup web root in project(netbeans)

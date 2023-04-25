@@ -103,6 +103,12 @@ class Site
         return $this->id;
     }
 
+    public function setId(?int $id): self
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getUrl(): ?string
     {
         return $this->url;
@@ -115,7 +121,7 @@ class Site
         return $this;
     }
 
-    public function isIsValid(): ?bool
+    public function isValid(): ?bool
     {
         return $this->is_valid;
     }

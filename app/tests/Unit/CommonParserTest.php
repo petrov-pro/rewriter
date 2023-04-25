@@ -1,5 +1,5 @@
 <?php
-namespace App\Tests;
+namespace App\Tests\Unit;
 
 use App\Service\Thief\FlareSolverrService;
 use App\Service\Parser\ParserFactory;
@@ -13,7 +13,6 @@ use function PHPUnit\Framework\once;
 class CommonParserTest extends KernelTestCase
 {
 
-    private MockObject $mockSource;
     private ParserFactory $parserFactory;
 
     public function sample()
@@ -143,13 +142,9 @@ class CommonParserTest extends KernelTestCase
     public function testSite(array $siteData): void
     {
         $sample = FileSystem::read('./tests/resourses/' . $siteData['site'] . '.html');
-        $this->mockSource
-            ->expects(once())
-            ->method("getData")
-            ->willReturn($sample);
 
         $parser = $this->parserFactory->create($siteData['site']);
-        $result = $parser->parser('test.com');
+        $result = $parser->parser($sample);
 
         $this->assertNotEmpty($result);
         foreach ($siteData['notContain'] as $value) {
@@ -169,9 +164,8 @@ class CommonParserTest extends KernelTestCase
             'debug' => true,
         ]);
         $dom = static::getContainer()->get(StructureParserInterface::class);
-        $this->mockSource = $this->createMock(FlareSolverrService::class);
         $this->parserFactory = new ParserFactory([
-            new Common($this->mockSource, $dom)
+            new Common($dom)
         ]);
         parent::setUp();
     }

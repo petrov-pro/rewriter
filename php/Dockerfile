@@ -18,7 +18,8 @@ RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
-
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
 
 RUN pecl install amqp && docker-php-ext-enable amqp
 

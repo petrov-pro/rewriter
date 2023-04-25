@@ -53,12 +53,15 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - ./app:/var/www/html
+      - ./php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
     environment:
       - APP_ENV=${APP_ENV}
     depends_on:
       - database
       - rabbitmq
       - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - app-network
 
