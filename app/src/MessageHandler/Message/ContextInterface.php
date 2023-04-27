@@ -49,4 +49,8 @@ interface ContextInterface
     public function getProvider(): string;
 
     public function setProvider(string $provider): self;
+
+    public function setTitle(string $title): self;
+
+    public function setDescription(string $description): self;
 }

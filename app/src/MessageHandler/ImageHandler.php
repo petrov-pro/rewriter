@@ -94,7 +94,7 @@ class ImageHandler implements HanlderMessageInterface
                 return;
             }
 
-            $context = $this->contextService->findById($message->getId());
+            $context = $this->contextService->findOrThrow($message->getId());
 
             if ($this->imageRepository->findOneBy([
                     'customer' => $message->getUserId(),

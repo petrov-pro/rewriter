@@ -2,6 +2,7 @@
 namespace App\Entity;
 
 use App\Repository\SiteRepository;
+use App\Service\Spread\WordPress\WordPressProvider;
 use App\Util\APIEnum;
 use App\Util\CategoryMainEnum;
 use App\Util\HtmlTagEnum;
@@ -16,7 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Site
 {
 
-    public const TYPE = ['wordpress', 'joomla', 'default'];
+    public const TYPE = [WordPressProvider::TYPE, 'none'];
     public const HTML_TAGS = [
         HtmlTagEnum::TAG_AI->value,
         HtmlTagEnum::TAG_DEFAULT->value,

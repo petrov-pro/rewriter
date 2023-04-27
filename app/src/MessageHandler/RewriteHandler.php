@@ -51,6 +51,7 @@ class RewriteHandler implements HanlderMessageInterface
                     'user_id' => $message->getUserId(),
                     'lang' => $message->getLang(),
                 ]);
+                $this->sendMessageToSpread($message);
 
                 return;
             }
@@ -84,11 +85,7 @@ class RewriteHandler implements HanlderMessageInterface
                 ]
             );
 
-            $this->cache->invalidateTags([APIEnum::CACHE_TAG_USER->value . $message->getUserId()]);
-            $this->bus->dispatch(
-                $message,
-                [new TransportNamesStamp([SpreadHandler::TRANSPORT_NAME])]
-            );
+            $this->sendMessageToSpread($message);
         } catch (TooMuchTokenException $ex) {
             $this->logger->info($ex->getMessage(), [
                 'message_id' => $message->getId()
@@ -97,6 +94,15 @@ class RewriteHandler implements HanlderMessageInterface
             $this->logger->error($ex->getMessage(), (array) $ex);
             throw $ex;
         }
+    }
+
+    private function sendMessageToSpread(ContextInterface $message): void
+    {
+        $this->cache->invalidateTags([APIEnum::CACHE_TAG_USER->value . $message->getUserId()]);
+        $this->bus->dispatch(
+            $message,
+            [new TransportNamesStamp([SpreadHandler::TRANSPORT_NAME])]
+        );
     }
 
     private function rewriteProcess(ContextInterface $message): void

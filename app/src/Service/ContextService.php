@@ -89,7 +89,7 @@ class ContextService
         bool $flush = true
     ): Context
     {
-        $contextEntity = $this->findById($id);
+        $contextEntity = $this->findOrThrow($id);
 
         $translate = (new Translate())->setTitle($textTitle)
             ->setDescription($textDescription)
@@ -107,7 +107,7 @@ class ContextService
 
     public function updateStatus(int $id, string $status): Context
     {
-        $context = $this->findById($id);
+        $context = $this->findOrThrow($id);
         $context->setStatus($status);
         $this->save($context, true);
 
@@ -116,7 +116,7 @@ class ContextService
 
     public function updateStatusText(int $id, string $status, string $text): Context
     {
-        $context = $this->findById($id);
+        $context = $this->findOrThrow($id);
         $context->setStatus($status);
         $context->setText($text);
         $this->save($context, true);
@@ -135,12 +135,7 @@ class ContextService
         return $translate !== null;
     }
 
-    public function checkContextId(int $id): void
-    {
-        $this->findById($id);
-    }
-
-    public function findById(int $id): Context
+    public function findOrThrow(int $id): Context
     {
         $context = $this->contextRepository->find($id);
         if (!$context) {
