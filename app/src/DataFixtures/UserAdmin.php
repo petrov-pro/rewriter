@@ -26,6 +26,7 @@ class UserAdmin extends Fixture
             ->setRoles([User::ROLE_ADMIN])
             ->setPassword(md5(''))
             ->setCompany('Admin company')
+            ->setMaxSite(0)
             ->addQuickAPIToken(64);
 
         $manager->persist($user);

@@ -42,7 +42,7 @@ class OpenAIService implements AIInterface
     {
         $modificator = match ($type) {
             HtmlTagEnum::TAG_AI->value => ' Text must be formatted with html tags: <p> <span>',
-            HtmlTagEnum::TAG_DEFAULT->value => '',
+            HtmlTagEnum::TAG_DEFAULT->value => ' Keep existing html tags',
             HtmlTagEnum::TAG_NOT_USE->value => '',
             default => ' Text must be formatted with html tags: ' . $type,
         };

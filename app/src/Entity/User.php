@@ -50,6 +50,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[Assert\NotBlank(groups: [APIEnum::GROUP_NAME_CREATE->value])]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value])]
+    #[ORM\Column]
+    private ?int $max_site = null;
+
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $apiTokens;
@@ -346,6 +351,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCompany(?string $company): self
     {
         $this->company = $company;
+
+        return $this;
+    }
+
+    public function getMaxSite(): ?int
+    {
+        return $this->max_site;
+    }
+
+    public function setMaxSite(?int $max_site): self
+    {
+        $this->max_site = $max_site;
 
         return $this;
     }

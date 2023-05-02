@@ -71,6 +71,10 @@ class SiteController extends AbstractController
             AbstractObjectNormalizer::GROUPS => [APIEnum::GROUP_NAME_CREATE->value]
         ]);
 
+        if (count($this->security->getUser()->getSites()) >= $this->security->getUser()->getMaxSite()) {
+            throw new ValidatorException('Can not be more sites than: ' . $this->security->getUser()->getMaxSite());
+        }
+
         $this->validate($site, APIEnum::GROUP_NAME_CREATE->value);
         $site->setCustomer($this->security->getUser());
 
@@ -125,7 +129,7 @@ class SiteController extends AbstractController
         }
     }
 
-    private function validate(object $entity, string $group)
+    private function validate(Site $entity, string $group)
     {
         $errors = $this->validator->validate($entity, null, ['Default', $group]);
 

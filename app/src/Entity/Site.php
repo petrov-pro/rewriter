@@ -61,7 +61,7 @@ class Site
     #[Assert\Choice(choices: Site::HTML_TAGS)]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $html_tag = null;
+    private ?string $html_tag = HtmlTagEnum::TAG_AI->value;
 
     #[Assert\Type('bool')]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]

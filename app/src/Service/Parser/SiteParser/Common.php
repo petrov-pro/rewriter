@@ -44,8 +44,10 @@ class Common implements SiteParserInterface
         ],
         'Cryptopolitan' => [
             'pattern' => "//div[contains(@class, 'elementor-widget-container')]",
-            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
-            'skipWords' => [],
+            'allowTag' => ['p', 'blockquote', 'h1', 'h3'],
+            'skipWords' => [
+                'Signup for our newsletter to stay in the loop.',
+            ],
             'supportTagWithAttribute' => []
         ],
         'Blockchain News' => [
@@ -116,6 +118,52 @@ class Common implements SiteParserInterface
             ],
             'supportTagWithAttribute' => []
         ],
+        'BeInCrypto' => [
+            'pattern' => "//div[contains(@class, 'entry-content-inner')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Dailycoin' => [
+            'pattern' => "//div[contains(@class, 'mkd-post-text-inner')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'The Daily Hodl' => [
+            'pattern' => "//div[contains(@class, 'content-inner')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'Generated Image: Midjourney'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Crypto news' => [
+            'pattern' => "//div[contains(@class, 'post-detail__content blocks')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Bitcoin Magazine' => [
+            'pattern' => "//div[contains(@class, 'm-detail--body')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'PYMNTS' => [
+            'pattern' => "//div[contains(@class, 'lh-article')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+    ];
+    private const SOURCE_NAME_NOT_WANT = [
+        'Benzinga'
     ];
 
     public function __construct(
@@ -132,6 +180,10 @@ class Common implements SiteParserInterface
             $this->currentRule = self::SOURCE_NAME[$sourceName];
 
             return true;
+        }
+
+        if (in_array($sourceName, self::SOURCE_NAME_NOT_WANT)) {
+            throw new NotWantParserException('Not available site: ' . $sourceName);
         }
 
         return false;

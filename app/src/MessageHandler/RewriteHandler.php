@@ -45,7 +45,7 @@ class RewriteHandler implements HanlderMessageInterface
                 ]
             );
 
-            if ($this->contextService->isDuplicateTranslate($message->getUserId(), $message->getId(), $message->getLang())) {
+            if ($this->contextService->isDuplicateTranslate($message->getUserId(), $message->getId(), $message->getSiteId(), $message->getLang())) {
                 $this->logger->info('Rewriter skip duplicate', [
                     'message_id' => $message->getId(),
                     'user_id' => $message->getUserId(),

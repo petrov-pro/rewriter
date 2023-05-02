@@ -19,6 +19,7 @@ class Context
 
     public const STATUS_INIT = 'init';
     public const STATUS_NOT_FOUND = 'not_found';
+    public const STATUS_NOT_WANT = 'not_want';
     public const STATUS_FINISH = 'finish';
 
     #[ORM\Id]

@@ -5,6 +5,7 @@ use App\Entity\Context;
 use App\MessageHandler\Message\ContextInterface;
 use App\Service\ContextService;
 use App\Service\Parser\NotFoundParserException;
+use App\Service\Parser\NotWantParserException;
 use App\Service\Parser\ParserFactory;
 use App\Service\Thief\ThiefInterface;
 use App\Util\NormalizeText;
@@ -59,6 +60,9 @@ class ParserHandler implements HanlderMessageInterface
             );
         } catch (NotFoundParserException $ex) {
             $this->contextService->updateStatus($message->getId(), Context::STATUS_NOT_FOUND);
+            $this->logger->info($ex->getMessage());
+        } catch (NotWantParserException $ex) {
+            $this->contextService->updateStatus($message->getId(), Context::STATUS_NOT_WANT);
             $this->logger->info($ex->getMessage());
         } catch (Exception $ex) {
             $this->logger->error($ex->getMessage(), (array) $ex);

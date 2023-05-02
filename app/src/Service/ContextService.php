@@ -124,10 +124,11 @@ class ContextService
         return $context;
     }
 
-    public function isDuplicateTranslate(int $userId, int $contextId, string $lang): bool
+    public function isDuplicateTranslate(int $userId, int $contextId, int $siteId, string $lang): bool
     {
         $translate = $this->translateRepository->findOneBy([
             'customer' => $userId,
+            'site' => $siteId,
             'context' => $contextId,
             'lang' => $lang
         ]);
