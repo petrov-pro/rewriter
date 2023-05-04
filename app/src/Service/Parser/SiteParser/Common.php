@@ -1,6 +1,7 @@
 <?php
 namespace App\Service\Parser\SiteParser;
 
+use App\Service\Parser\NotWantParserException;
 use App\Service\Parser\SiteParserInterface;
 use App\Service\Parser\StructureParserInterface;
 use Exception;
@@ -129,6 +130,8 @@ class Common implements SiteParserInterface
             'pattern' => "//div[contains(@class, 'mkd-post-text-inner')]",
             'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
             'skipWords' => [
+                'On the Flipside',
+                'Why You Should Care'
             ],
             'supportTagWithAttribute' => []
         ],
@@ -161,9 +164,55 @@ class Common implements SiteParserInterface
             ],
             'supportTagWithAttribute' => []
         ],
+        'Crypto Daily' => [
+            'pattern' => "//div[contains(@class, 'news-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'Disclaimer: This article is provided for informational purposes only. It is not offered or intended to be used as legal, tax, investment, financial, or other advice.'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'CryptoGlobe' => [
+            'pattern' => "//div[contains(@class, 'article-body')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'CrowdFundInsider' => [
+            'pattern' => "//div[contains(@class, 'article')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'TheNewsCrypto' => [
+            'pattern' => "//section[contains(@class, 'article-content-wrapper')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'More Details On The Key Findings'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'Bitcoinworld' => [
+            'pattern' => "//div[contains(@class, 'entry-content')]//div//div",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
+         'CoinPedia' => [
+            'pattern' => "//div[contains(@class, 'entry-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => []
+        ],
     ];
     private const SOURCE_NAME_NOT_WANT = [
-        'Benzinga'
+        'Benzinga',
+        'The Block',
+        'Coindesk'
     ];
 
     public function __construct(

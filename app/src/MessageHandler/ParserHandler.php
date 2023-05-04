@@ -40,8 +40,8 @@ class ParserHandler implements HanlderMessageInterface
                 ]
             );
 
-            $sourceData = $this->capture->getData($message->getSourceUrl());
             $siteParser = $this->parserFactory->create($message->getSourceName());
+            $sourceData = $this->capture->getData($message->getSourceUrl());
             $fullText = $siteParser->parser($sourceData);
 
             $message->setText(NormalizeText::handle($fullText));

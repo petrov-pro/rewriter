@@ -8,7 +8,7 @@ use App\Util\TypeDataEnum;
 interface AIInterface
 {
 
-    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = '', string $type = ''): TextInterface;
+    public function rewrite(mixed $idt, string $textRewrite, string $langOriginal, string $translateTo = '', string $type = ''): TextInterface;
 
     public function keywords(mixed $idt, string $title, int $count = 3): TextInterface;
 

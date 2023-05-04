@@ -12,7 +12,16 @@ framework:
             parse: "%env(PARSER_MESSENGER_TRANSPORT_DSN)%"
             spread: "%env(SPREAD_MESSENGER_TRANSPORT_DSN)%"
             image: "%env(IMAGE_MESSENGER_TRANSPORT_DSN)%"
-            rewrite: "%env(REWRITE_MESSENGER_TRANSPORT_DSN)%"
+            rewrite: 
+                dsn: "%env(REWRITE_MESSENGER_TRANSPORT_DSN)%"
+                retry_strategy:
+                    max_retries: 3
+                    # milliseconds delay
+                    delay: 60000
+                    # causes the delay to be higher before each retry
+                    # e.g. 1 second delay, 2 seconds, 4 seconds
+                    multiplier: 2
+                    max_delay: 0
             order: "%env(ORDER_MESSENGER_TRANSPORT_DSN)%"
             
             

@@ -12,6 +12,8 @@ use App\Util\TypeDataEnum;
 use Exception;
 use Orhanerday\OpenAi\OpenAi;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -25,6 +27,7 @@ class OpenAIService implements AIInterface
     public const TRANSPORT_NAME = 'rewrite';
     public const ADDITIONAL_COUNT_TOKEN = 200;
     private const CACHE_TIME = 604800;
+    private const RICH_LIMIT_ERROR_TYPE = 'tokens';
 
     public function __construct(
         private int $maxToken,
@@ -38,18 +41,18 @@ class OpenAIService implements AIInterface
         
     }
 
-    public function rewrite(mixed $idt, string $textRewrite, string $translateTo = '', string $type = ''): TextInterface
+    public function rewrite(mixed $idt, string $textRewrite, string $langOriginal, string $translateTo = '', string $type = ''): TextInterface
     {
         $modificator = match ($type) {
-            HtmlTagEnum::TAG_AI->value => ' Text must be formatted with html tags: <p> <span>',
-            HtmlTagEnum::TAG_DEFAULT->value => ' Keep existing html tags',
+            HtmlTagEnum::TAG_AI->value => ', text must be formatted with html tags: <p> <span>',
+            HtmlTagEnum::TAG_DEFAULT->value => ', keep existing html tags',
             HtmlTagEnum::TAG_NOT_USE->value => '',
-            default => ' Text must be formatted with html tags: ' . $type,
+            default => ', text must be formatted with html tags: ' . $type,
         };
 
-        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo, $modificator), function (ItemInterface $item) use ($textRewrite, $translateTo, $modificator) {
+        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo, $modificator), function (ItemInterface $item) use ($textRewrite, $langOriginal, $translateTo, $modificator) {
                 $item->expiresAfter(self::CACHE_TIME);
-                $system = 'Rewrite.' . ($translateTo ? ' Translate into ' . $translateTo . '.' : '') . ($modificator ? $modificator : '');
+                $system = 'Rewrite on ' . $langOriginal . ($translateTo ? ', translate into ' . $translateTo : '') . ($modificator ? $modificator : '') . '.';
 
                 return $this->chat($textRewrite, $system);
             });
@@ -167,21 +170,18 @@ class OpenAIService implements AIInterface
     private function completion(string $prompt): TextInterface
     {
         try {
-            $maxToken = $this->findMaxAvailableToken($prompt);
-            $complete = $this->openAI->completion([
+            $data = [
                 'model' => 'text-davinci-003',
                 'prompt' => $prompt,
                 'temperature' => 0.9,
-                'max_tokens' => $maxToken,
                 'frequency_penalty' => 0,
                 'presence_penalty' => 0.6,
-            ]);
+            ];
 
-            $this->logger->debug("Response openIA completion", [
-                'max_token_possible' => $maxToken,
-                'response' => $complete,
-                'text_incoming' => $prompt
-            ]);
+            $complete = $this->openAI->completion($data);
+            $this->logger->debug("Response openIA completion", $data);
+
+            $this->checkError($complete);
 
             return $this->serializer->deserialize($complete, TextDTO::class, JsonEncoder::FORMAT, [
                     AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
@@ -195,8 +195,7 @@ class OpenAIService implements AIInterface
     private function chat(string $prompt, string $system): TextInterface
     {
         try {
-            $maxToken = $this->findMaxAvailableToken($prompt);
-            $complete = $this->openAI->chat([
+            $data = [
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
                     [
@@ -209,17 +208,14 @@ class OpenAIService implements AIInterface
                     ]
                 ],
                 'temperature' => 1.0,
-                'max_tokens' => $maxToken,
                 'frequency_penalty' => 0,
                 'presence_penalty' => 0,
-            ]);
+            ];
 
-            $this->logger->debug("Response openIA completion", [
-                'max_token_possible' => $maxToken,
-                'response' => $complete,
-                'text_incoming' => $prompt,
-                'system' => $system
-            ]);
+            $complete = $this->openAI->chat($data);
+            $this->logger->debug("Response openIA completion", $data);
+
+            $this->checkError($complete);
 
             return $this->serializer->deserialize($complete, ChatDTO::class, JsonEncoder::FORMAT, [
                     AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
@@ -233,5 +229,20 @@ class OpenAIService implements AIInterface
     private function makeHash(...$params): string
     {
         return md5(serialize($params));
+    }
+
+    private function checkError(string $response): void
+    {
+        $responseInfo = $this->openAI->getCURLInfo();
+        if (!empty($responseInfo['http_code']) && $responseInfo['http_code'] === Response::HTTP_OK) {
+            return;
+        }
+
+        $errorMessage = json_decode($response, true);
+        if (!empty($errorMessage['error']['type']) && $errorMessage['error']['type'] === self::RICH_LIMIT_ERROR_TYPE) {
+            throw new RecoverableMessageHandlingException();
+        }
+
+        throw new AIException('AI Wrong format respone: ' . $response);
     }
 }

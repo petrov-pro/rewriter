@@ -29,6 +29,7 @@ class RewriteHandler implements HanlderMessageInterface
         private LoggerInterface $logger,
         private MessageBusInterface $bus,
         private TagAwareCacheInterface $cache,
+        private int $countRepeatRewrite
     )
     {
         
@@ -76,16 +77,33 @@ class RewriteHandler implements HanlderMessageInterface
                 return;
             }
 
-            $this->rewriteProcess($message);
+            $message = $this->rewriteProcess($message);
 
-            $this->logger->info('Rewriter finished content message',
+            if ($message->getCountRewrite() >= $this->countRepeatRewrite) {
+
+                $this->saveContext($message);
+                $this->logger->info('Rewriter finished content message',
+                    [
+                        'source' => $message->getSourceName(),
+                        'title' => $message->getTitle()
+                    ]
+                );
+                $this->sendMessageToSpread($message);
+
+                return;
+            }
+
+            $message->setCountRewrite($message->getCountRewrite() + 1);
+            $this->logger->info('Rewriter send again content message: ' . $message->getCountRewrite(),
                 [
                     'source' => $message->getSourceName(),
                     'title' => $message->getTitle()
                 ]
             );
-
-            $this->sendMessageToSpread($message);
+            $this->bus->dispatch(
+                $message,
+                [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
+            );
         } catch (TooMuchTokenException $ex) {
             $this->logger->info($ex->getMessage(), [
                 'message_id' => $message->getId()
@@ -105,37 +123,47 @@ class RewriteHandler implements HanlderMessageInterface
         );
     }
 
-    private function rewriteProcess(ContextInterface $message): void
+    private function rewriteProcess(ContextInterface $message): ContextInterface
     {
         $translateLang = ($message->getLang() !== $message->getOriginalLang()) ? $message->getLang() : '';
         $site = $this->siteRepository->find($message->getSiteId());
         $text = $this->AIService->rewrite(
             $message->getUserId(),
             ($site->getHtmlTag() === HtmlTagEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
+            $message->getOriginalLang(),
             $translateLang,
             $site->getHtmlTag()
         );
-        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
-        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
-        $token = $text->getToken() + $textDescription->getToken() + $textTitle->getToken();
+        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
+        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
+        $token = ($text->getToken() + $textDescription->getToken() + $textTitle->getToken()) + $message->getToken();
 
+        return $message->setTitle($textTitle->getText())
+                ->setDescription($textDescription->getText())
+                ->setText($text->getText())
+                ->setOriginalLang($message->getLang())
+                ->setToken($token);
+    }
+
+    private function saveContext(ContextInterface $message): void
+    {
         ///transactional
         $this->contextService->saveModifyContext(
             $message->getId(),
             $message->getUserId(),
             $message->getSiteId(),
-            $text->getText(),
-            $textDescription->getText(),
-            $textTitle->getText(),
+            $message->getText(),
+            $message->getDescription(),
+            $message->getTitle(),
             $message->getLang(),
-            $token,
+            $message->getToken(),
             false
         );
 
         $this->accountService->withdraw(
             $this->AIService->findCost(
                 TypeDataEnum::TEXT,
-                $token
+                $message->getToken()
             ),
             $message->getUserId(),
             true

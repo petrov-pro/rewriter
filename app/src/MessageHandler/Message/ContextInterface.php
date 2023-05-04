@@ -46,6 +46,8 @@ interface ContextInterface
 
     public function getOriginalLang(): string;
 
+    public function setOriginalLang(string $lang): self;
+
     public function getProvider(): string;
 
     public function setProvider(string $provider): self;
@@ -53,4 +55,12 @@ interface ContextInterface
     public function setTitle(string $title): self;
 
     public function setDescription(string $description): self;
+
+    public function setToken(int $token): self;
+
+    public function getToken(): int;
+
+    public function getCountRewrite(): int;
+
+    public function setCountRewrite(int $count): self;
 }
