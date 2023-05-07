@@ -36,14 +36,15 @@ class ContextRepository extends ServiceEntityRepository
                 ->getOneOrNullResult();
     }
 
-    public function findPublicContext(int $customerId, int $page, int $limit, string $source = ''): array
+    public function findPublicContext(int $customerId, int $page, int $limit, string $source = '', int $siteId = 0): array
     {
 
         $query = $this->createQueryBuilder('c')
-            ->select('c', 't')
+            ->select('c', 't', 'i')
             ->innerJoin('c.translates', 't')
             ->innerJoin('t.customer', 'u')
             ->innerJoin('u.apiTokens', 'at', Join::WITH, "at.is_valid = true AND at.date >= CURRENT_TIMESTAMP()")
+            ->leftJoin('c.images', 'i', Join::WITH, 'i.site = t.site')
             ->setFirstResult($page)
             ->setMaxResults($limit)
             ->where('u.id = :userId')
@@ -51,8 +52,13 @@ class ContextRepository extends ServiceEntityRepository
             ->orderBy('c.id', 'DESC');
 
         if ($source) {
-            $query->where('c.source_name = :source_name')
+            $query->andWhere('c.source_name = :source_name')
                 ->setParameter('source_name', $source);
+        }
+
+        if ($siteId) {
+            $query->andWhere('t.site = :site_id')
+                ->setParameter('site_id', $siteId);
         }
 
         return $query->getQuery()

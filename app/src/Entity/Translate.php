@@ -46,6 +46,7 @@ class Translate
     #[ORM\JoinColumn(nullable: false)]
     private ?User $customer = null;
 
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\ManyToOne(inversedBy: 'translate')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Site $site = null;

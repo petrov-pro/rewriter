@@ -53,18 +53,23 @@ class ContextController extends AbstractController
             name: 'source',
             description: 'Spurce of content'
         )]
+    #[OA\QueryParameter(
+            name: 'site_id',
+            description: 'Site id'
+        )]
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(Request $request, ContextRepository $repository): JsonResponse
     {
         $page = $request->query->get('page') ?? 0;
         $limit = $request->query->get('limit') ?? 10;
         $source = $request->query->get('source') ?? '';
+        $siteId = $request->query->get('site_id') ?? 0;
 
-        $contexts = $this->cache->get(Helper::generateHash(__CLASS__, $request->query->all()), function (ItemInterface $item) use ($repository, $page, $limit, $source) {
+        $contexts = $this->cache->get(Helper::generateHash(__CLASS__, $request->query->all()), function (ItemInterface $item) use ($repository, $page, $limit, $source, $siteId) {
             $item->expiresAfter((int) APIEnum::CACHE_LIVE->value);
             $item->tag([APIEnum::CACHE_TAG->value, APIEnum::CACHE_TAG_USER->value . $this->security->getUser()->getId()]);
 
-            return $repository->findPublicContext($this->security->getUser()->getId(), $page, $limit, $source);
+            return $repository->findPublicContext($this->security->getUser()->getId(), $page, $limit, $source, $siteId);
         });
 
         return $this->json($contexts, Response::HTTP_OK, [], [

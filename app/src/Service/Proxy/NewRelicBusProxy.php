@@ -20,6 +20,7 @@ class NewRelicBusProxy implements MessageBusInterface
         if (
             $message instanceof NameableNewrelicTransactionInterface && $message instanceof ContextInterface
         ) {
+
             foreach ($stamps as $stamp) {
                 if ($stamp instanceof TransportNamesStamp) {
                     $message->transationName = $stamp->getTransportNames()[0];
