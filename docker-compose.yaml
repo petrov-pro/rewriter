@@ -45,9 +45,11 @@ services:
 ###< doctrine/doctrine-bundle ###
     networks:
       - app-network
-
+      
   php:
     build:
+      args:
+        NEW_RELIC_KEY: ${NEW_RELIC_KEY}
       context: .
       dockerfile: php/Dockerfile
     user: "${UID}:${GID}"
@@ -90,11 +92,9 @@ services:
       - app-network
 
 volumes:
-###> doctrine/doctrine-bundle ###
   database_data:
   rabbitmq_data:
   redis_data:
-###< doctrine/doctrine-bundle ###
 
 networks:
   app-network:

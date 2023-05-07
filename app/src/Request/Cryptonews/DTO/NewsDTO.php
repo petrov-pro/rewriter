@@ -2,12 +2,14 @@
 namespace App\Request\Cryptonews\DTO;
 
 use App\MessageHandler\Message\ContextInterface;
+use Arxus\NewrelicMessengerBundle\Newrelic\NameableNewrelicTransactionInterface;
 use DateTimeInterface;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 
-class NewsDTO implements ContextInterface
+class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
 {
 
+    public string $transationName = self::class;
     private string $news_url;
     private string $image_url;
     private string $title;
@@ -241,5 +243,10 @@ class NewsDTO implements ContextInterface
     {
         $this->original_lang = $lang;
         return $this;
+    }
+
+    public function getNewrelicTransactionName()
+    {
+        return $this->transationName;
     }
 }

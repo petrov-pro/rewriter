@@ -201,12 +201,61 @@ class Common implements SiteParserInterface
             ],
             'supportTagWithAttribute' => []
         ],
-         'CoinPedia' => [
+        'CoinPedia' => [
             'pattern' => "//div[contains(@class, 'entry-content')]",
             'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
             'skipWords' => [
             ],
             'supportTagWithAttribute' => []
+        ],
+        'Proactive Investors' => [
+            'pattern' => "//div[contains(@class, 'ckeditor-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
+        'The Cryptonomist' => [
+            'pattern' => "//div[contains(@class, 'post-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
+        'UToday' => [
+            'pattern' => "//div[contains(@class, 'article__content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
+        'Crypto Briefing' => [
+            'pattern' => "//section[contains(@class, 'article-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                'More Details On The Key Findings'
+            ],
+            'supportTagWithAttribute' => []
+        ],
+        'AMBCrypto' => [
+            'pattern' => "//div[contains(@class, 'single-post-main-middle')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
+        'Coinspeaker' => [
+            'pattern' => "//div[contains(@class, 'content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+                'CRYPTOCURRENCY NEWS'
+            ]
         ],
     ];
     private const SOURCE_NAME_NOT_WANT = [

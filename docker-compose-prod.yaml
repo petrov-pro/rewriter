@@ -50,6 +50,8 @@ services:
 
   php:
     build:
+      args:
+        NEW_RELIC_KEY: ${NEW_RELIC_KEY}
       context: .
       dockerfile: php/Dockerfile.prod
     restart: always

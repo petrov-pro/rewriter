@@ -2,7 +2,6 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
-use stdClass;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 class MessageHandler
@@ -13,15 +12,15 @@ class MessageHandler
         private RewriteHandler $rewriteHandler,
         private SpreadHandler $spreadHandler,
         private ImageHandler $imageHandler,
-        private ContextHandler $contextHandler,
+        private SourceHandler $contextHandler,
         private OrderHandler $orderHandler
     )
     {
         
     }
 
-    #[AsMessageHandler(fromTransport: ContextHandler::TRANSPORT_NAME)]
-    public function handleSource(stdClass $message)
+    #[AsMessageHandler(fromTransport: SourceHandler::TRANSPORT_NAME)]
+    public function handleSource(ContextInterface $message)
     {
         $this->contextHandler->handle();
     }

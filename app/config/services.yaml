@@ -33,9 +33,12 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+#Services
     Orhanerday\OpenAi\OpenAi: ~
     PHPHtmlParser\Dom: ~
-    
+    App\Service\Proxy\NewRelicBusProxy: ~
+ 
+#Description
     _instanceof:
         App\Service\ContextProvider\ContextProviderInterface:
             tags: ['app.provider.news']
@@ -46,7 +49,7 @@ services:
         App\Service\Spread\SpreadProviderInterface:
              tags: ['app.spread.provider']
             
-    App\MessageHandler\ContextHandler:
+    App\MessageHandler\SourceHandler:
         arguments:
             $contextProviders: !tagged_iterator app.provider.news
             
@@ -57,3 +60,7 @@ services:
     App\Service\Spread\SpreadProviderFactory:
         arguments:
             $spreadProviders: !tagged_iterator app.spread.provider
+            
+    Symfony\Component\Messenger\MessageBusInterface $bus: '@App\Service\Proxy\NewRelicBusProxy'
+            
+    

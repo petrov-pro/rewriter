@@ -1,15 +1,18 @@
 monolog:
+    use_microseconds: false
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
 
 when@dev:
     monolog:
         handlers:
+            use_microseconds: false
             main:
                 type: stream
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
                 level: debug
                 channels: ["!event"]
+                date_format: "Y-m-d H:i:s"
             # uncomment to get logging in your browser
             # you may have to allow bigger header sizes in your Web server configuration
             #firephp:
@@ -26,6 +29,7 @@ when@dev:
 
 when@test:
     monolog:
+        use_microseconds: false
         handlers:
             main:
                 type: fingers_crossed
@@ -46,6 +50,7 @@ when@test:
 
 when@prod:
     monolog:
+        use_microseconds: false
         handlers:
             main:
                 type: fingers_crossed

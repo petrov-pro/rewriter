@@ -1,8 +1,8 @@
 <?php
 namespace App\Command;
 
-use App\MessageHandler\ContextHandler;
-use stdClass;
+use App\MessageHandler\SourceHandler;
+use App\Request\Cryptonews\DTO\NewsDTO;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,7 +15,7 @@ class ContextCommand extends Command
 {
 
     public function __construct(
-        private MessageBusInterface $bus,
+        private MessageBusInterface $bus
     )
     {
         parent::__construct();
@@ -29,8 +29,10 @@ class ContextCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<info>Start</info>');
-        $this->bus->dispatch(new stdClass(),
-            [new TransportNamesStamp([ContextHandler::TRANSPORT_NAME])]
+        //send empty message for start flow
+        $this->bus->dispatch(
+            new NewsDTO(),
+            [new TransportNamesStamp([SourceHandler::TRANSPORT_NAME])]
         );
 
         return Command::SUCCESS;

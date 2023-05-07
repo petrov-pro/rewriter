@@ -2,7 +2,7 @@
 namespace App\Tests\Integration;
 
 use App\Entity\Context;
-use App\MessageHandler\ContextHandler;
+use App\MessageHandler\SourceHandler;
 use App\MessageHandler\Message\ContextInterface;
 use App\Service\ContextProvider\ContextProviderInterface;
 use App\Service\ContextService;
@@ -12,7 +12,7 @@ use stdClass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class ContextHandlerTest extends TestCase
+class SourceHandlerTest extends TestCase
 {
 
     public function testHandle(): void
@@ -23,7 +23,7 @@ class ContextHandlerTest extends TestCase
             $this->createMock(ContextProviderInterface::class),
         ];
         $contextService = $this->createMock(ContextService::class);
-        $handler = new ContextHandler($logger, $bus, $contextProviders, $contextService);
+        $handler = new SourceHandler($logger, $bus, $contextProviders, $contextService);
 
         $expectedTitle = 'Title';
         $expectedSourceName = 'SourceName';

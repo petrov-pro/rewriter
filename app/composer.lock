@@ -4,8 +4,55 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e95de5861e443e0fa9de4a4c95899d2",
+    "content-hash": "6d3fc5f0dd4bb40909ce4b5f4661243c",
     "packages": [
+        {
+            "name": "arxus/messenger-newrelic",
+            "version": "0.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ArxusPublic/messenger-newrelic.git",
+                "reference": "7fccf2de955af2791e2cad21466aece0d4fe80b1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ArxusPublic/messenger-newrelic/zipball/7fccf2de955af2791e2cad21466aece0d4fe80b1",
+                "reference": "7fccf2de955af2791e2cad21466aece0d4fe80b1",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0",
+                "symfony/http-kernel": "^4.3 || ~5.0 || ~6.0",
+                "symfony/messenger": "^4.3 || ~5.0 || ~6.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "~3.5",
+                "nikic/php-parser": "^4.0",
+                "phpro/grumphp": "^1.5",
+                "phpunit/phpunit": "^9.0",
+                "roave/security-advisories": "dev-master",
+                "symfony/process": "^4.0 || ~5.0 || ~6.0"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "Arxus\\NewrelicMessengerBundle\\": ""
+                },
+                "exclude-from-classmap": [
+                    "tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "mit"
+            ],
+            "description": "Make symfony messenger report consumption to newrelic",
+            "support": {
+                "issues": "https://github.com/ArxusPublic/messenger-newrelic/issues",
+                "source": "https://github.com/ArxusPublic/messenger-newrelic/tree/0.5.1"
+            },
+            "time": "2023-03-03T13:59:22+00:00"
+        },
         {
             "name": "doctrine/annotations",
             "version": "2.0.1",

@@ -34,7 +34,7 @@ services:
         App\Service\Spread\SpreadProviderInterface:
              tags: ['app.spread.provider']
             
-    App\MessageHandler\ContextHandler:
+    App\MessageHandler\SourceHandler:
         arguments:
             $contextProviders: !tagged_iterator app.provider.news
             

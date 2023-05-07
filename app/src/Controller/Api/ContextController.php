@@ -54,7 +54,7 @@ class ContextController extends AbstractController
             description: 'Spurce of content'
         )]
     #[Route(path: ['', '/'], methods: 'GET')]
-    public function get(Request $request, ContextRepository $repository, string $page): JsonResponse
+    public function get(Request $request, ContextRepository $repository): JsonResponse
     {
         $page = $request->query->get('page') ?? 0;
         $limit = $request->query->get('limit') ?? 10;

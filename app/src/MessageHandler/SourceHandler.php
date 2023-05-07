@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 
-class ContextHandler
+class SourceHandler
 {
 
     public const TRANSPORT_NAME = 'source';
