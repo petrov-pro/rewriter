@@ -4,6 +4,9 @@ namespace App\Controller\Api;
 use App\Entity\Site;
 use App\Entity\User;
 use App\Repository\SiteRepository;
+use App\Service\Spread\DTO\BaseDTO;
+use App\Service\Spread\WordPress\DTO\PostCreateDTO;
+use App\Service\Spread\WordPressCom\DTO\PostCreateDTO as PostCreateDTOCom;
 use App\Util\APIEnum;
 use InvalidArgumentException;
 use Nelmio\ApiDocBundle\Annotation\Areas;
@@ -129,12 +132,36 @@ class SiteController extends AbstractController
         }
     }
 
-    private function validate(Site $entity, string $group)
+    private function validate(Site $entity, string $group): void
     {
         $errors = $this->validator->validate($entity, null, ['Default', $group]);
 
         if (count($errors) > 0) {
             throw new ValidatorException($errors[0]->getPropertyPath() . ' - ' . $errors[0]->getMessage());
+        }
+
+        if (!$entity->isSend()) {
+            return;
+        }
+
+        $this->validateSetting(
+            $entity->getSetting(),
+            match ($entity->getType()) {
+                'wordpresscom' => PostCreateDTOCom::class,
+                'wordpress' => PostCreateDTO::class,
+                default => BaseDTO::class,
+            }
+        );
+    }
+
+    private function validateSetting(array $setting, string $type): void
+    {
+        $entitySetting = $this->serializer->deserialize(\json_encode($setting), $type, JsonEncoder::FORMAT);
+
+        $errors = $this->validator->validate($entitySetting);
+
+        if (count($errors) > 0) {
+            throw new ValidatorException('Settings: ' . $errors[0]->getPropertyPath() . ' - ' . $errors[0]->getMessage());
         }
     }
 }

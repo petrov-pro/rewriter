@@ -2,6 +2,7 @@
 namespace App\Service\Spread\WordPressCom;
 
 use App\Entity\Context;
+use App\Entity\Site;
 use App\Service\Spread\BaseProvider;
 use App\Service\Spread\SpreadProviderInterface;
 use App\Service\Spread\WordPressCom\DTO\PostCreateDTO;
@@ -19,20 +20,17 @@ class WordPressComProvider extends BaseProvider implements SpreadProviderInterfa
         return $providerType == self::TYPE;
     }
 
-    public function spread(array $params, Context $context): void
+    public function spread(Context $context, Site $site): void
     {
-        if (!empty($params['post_create'])) {
-            $content = $this->deserialize($params, PostCreateDTO::class);
-        } else {
-            $content = new PostCreateDTO();
-        }
+        $content = $this->deserialize($site->getSetting(), PostCreateDTO::class);
 
         $slugger = new AsciiSlugger();
         $slug = $slugger->slug($context->getTitle());
+        $translate = $context->getTranslates()[0];
 
-        $content->setTitle($context->getTitle())
-            ->setExcerpt($context->getDescription())
-            ->setContent($context->getText())
+        $content->setTitle($translate->getTitle())
+            ->setExcerpt($translate->getDescription())
+            ->setContent($translate->getText())
             ->setSlug($slug);
 
         if ($this->isCreatePost($content)) {

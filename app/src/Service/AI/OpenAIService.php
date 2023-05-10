@@ -7,7 +7,7 @@ use App\Service\AI\DTO\OpenAI\Chat\ChatDTO;
 use App\Service\AI\DTO\OpenAI\ImageDTO;
 use App\Service\AI\DTO\OpenAI\TextDTO;
 use App\Service\AI\DTO\TextInterface;
-use App\Util\HtmlTagEnum;
+use App\Util\AITypeEnum;
 use App\Util\TypeDataEnum;
 use Exception;
 use Orhanerday\OpenAi\OpenAi;
@@ -44,9 +44,10 @@ class OpenAIService implements AIInterface
     public function rewrite(mixed $idt, string $textRewrite, string $langOriginal, string $translateTo = '', string $type = ''): TextInterface
     {
         $modificator = match ($type) {
-            HtmlTagEnum::TAG_AI->value => ', text must be formatted with html tags: <p> <span>',
-            HtmlTagEnum::TAG_DEFAULT->value => ', keep existing html tags',
-            HtmlTagEnum::TAG_NOT_USE->value => '',
+            AITypeEnum::TAG_AI->value => ', text must be formatted with html tags: <p> <span>',
+            AITypeEnum::TAG_DEFAULT->value => ', keep existing html tags',
+            AITypeEnum::TAG_NOT_USE->value => '',
+            AITypeEnum::SHORT_VERSION->value => ', short version',
             default => ', text must be formatted with html tags: ' . $type,
         };
 
@@ -58,7 +59,7 @@ class OpenAIService implements AIInterface
             });
     }
 
-    public function keywords(mixed $idt, string $title, int $count = 3): TextInterface
+    public function keywords(mixed $idt, string $title, int $count = 6): TextInterface
     {
         return $this->cache->get($this->makeHash($idt, $title, $count), function (ItemInterface $item) use ($title, $count) {
                 $item->expiresAfter(self::CACHE_TIME);
@@ -81,7 +82,7 @@ class OpenAIService implements AIInterface
         return $this->cache->get($this->makeHash($idt, $prompt, $type), function (ItemInterface $item) use ($prompt, $type) {
                 $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->image('For create the image, use this words: ' . $prompt, $type);
+                return $this->image('Draw a picture using the following keywords: ' . $prompt, $type);
             });
     }
 

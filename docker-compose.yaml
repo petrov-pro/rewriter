@@ -53,6 +53,8 @@ services:
       context: .
       dockerfile: php/Dockerfile
     user: "${UID}:${GID}"
+    ports:
+      - "9000"
     volumes:
       - ./app:/var/www/html
       - ./php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini

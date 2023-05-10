@@ -4,7 +4,7 @@ namespace App\Service\Parser\SiteParser;
 use App\Service\Parser\NotWantParserException;
 use App\Service\Parser\SiteParserInterface;
 use App\Service\Parser\StructureParserInterface;
-use Exception;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Webmozart\Assert\InvalidArgumentException;
 
 class Common implements SiteParserInterface
@@ -44,7 +44,7 @@ class Common implements SiteParserInterface
             'supportTagWithAttribute' => []
         ],
         'Cryptopolitan' => [
-            'pattern' => "//div[contains(@class, 'elementor-widget-container')]",
+            'pattern' => "//div[contains(@class, 'entry-content')]",
             'allowTag' => ['p', 'blockquote', 'h1', 'h3'],
             'skipWords' => [
                 'Signup for our newsletter to stay in the loop.',
@@ -257,11 +257,20 @@ class Common implements SiteParserInterface
                 'CRYPTOCURRENCY NEWS'
             ]
         ],
+        'Coingape' => [
+            'pattern' => "//div[contains(@class, 'c-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
     ];
     private const SOURCE_NAME_NOT_WANT = [
         'Benzinga',
         'The Block',
-        'Coindesk'
+        'Coindesk',
+        'CNBC Television'
     ];
 
     public function __construct(
@@ -281,7 +290,7 @@ class Common implements SiteParserInterface
         }
 
         if (in_array($sourceName, self::SOURCE_NAME_NOT_WANT)) {
-            throw new NotWantParserException('Not available site: ' . $sourceName);
+            throw new NotWantParserException('Parser does not support site: ' . $sourceName);
         }
 
         return false;
@@ -302,7 +311,7 @@ class Common implements SiteParserInterface
         );
 
         if (empty($content)) {
-            throw new Exception('Can not find element for source: ' . $this->currentSourceName);
+            throw new UnrecoverableMessageHandlingException('Can not find element for source: ' . $this->currentSourceName);
         }
 
         return strip_tags($content, $this->currentRule['allowTag']);

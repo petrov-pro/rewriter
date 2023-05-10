@@ -65,7 +65,15 @@ class BaseDTO
     public static function toArray(): array
     {
         $reflection = new ReflectionClass(self::class);
-        return $reflection->getProperties(ReflectionProperty::IS_PRIVATE);
+        $fields = $reflection->getProperties(ReflectionProperty::IS_PROTECTED);
+
+        $protectedFields = [];
+
+        foreach ($fields as $field) {
+            $protectedFields[] = $field->getName();
+        }
+
+        return $protectedFields;
     }
 
     public function getSite(): string

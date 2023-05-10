@@ -55,6 +55,8 @@ services:
       context: .
       dockerfile: php/Dockerfile.prod
     restart: always
+    ports:
+      - "9000"
     environment:
       - APP_ENV=${APP_ENV}
     depends_on:

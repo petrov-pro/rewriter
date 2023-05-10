@@ -5,7 +5,7 @@ use App\Repository\SiteRepository;
 use App\Service\Spread\WordPress\WordPressProvider;
 use App\Util\APIEnum;
 use App\Util\CategoryMainEnum;
-use App\Util\HtmlTagEnum;
+use App\Util\AITypeEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -19,10 +19,10 @@ class Site
 
     public const TYPE = [WordPressProvider::TYPE, 'none'];
     public const HTML_TAGS = [
-        HtmlTagEnum::TAG_AI->value,
-        HtmlTagEnum::TAG_DEFAULT->value,
-        HtmlTagEnum::TAG_NOT_USE->value,
-        HtmlTagEnum::TAG_USER->value,
+        AITypeEnum::TAG_AI->value,
+        AITypeEnum::TAG_DEFAULT->value,
+        AITypeEnum::TAG_NOT_USE->value,
+        AITypeEnum::TAG_USER->value,
     ];
     public const CATEGORIES = [
         CategoryMainEnum::CRYPTO->value
@@ -61,7 +61,7 @@ class Site
     #[Assert\Choice(choices: Site::HTML_TAGS)]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $html_tag = HtmlTagEnum::TAG_AI->value;
+    private ?string $html_tag = AITypeEnum::TAG_AI->value;
 
     #[Assert\Type('bool')]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]

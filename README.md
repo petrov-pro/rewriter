@@ -1,6 +1,9 @@
 # rewriter
 Rewriter - application which use openAI and new api for create rewrite content
 
+API description
+/api/doc/api
+/api/doc/manager
 
 1 copy .env.docker.dist .env
 2 /app copy .env.dist .env

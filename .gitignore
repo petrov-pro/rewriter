@@ -1,3 +1,4 @@
 nbproject/
 data/
 .env
+app/src/Command/TestCommand.php

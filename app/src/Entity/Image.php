@@ -38,6 +38,7 @@ class Image
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\ManyToOne(inversedBy: 'image')]
     private ?Site $site = null;
+    private string $type = 'png';
 
     public function getId(): ?int
     {
@@ -101,6 +102,17 @@ class Image
     {
         $this->site = $site;
 
+        return $this;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type)
+    {
+        $this->type = $type;
         return $this;
     }
 }

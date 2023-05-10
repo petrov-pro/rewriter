@@ -8,7 +8,7 @@ use App\Service\AI\AIInterface;
 use App\Service\AI\TooMuchTokenException;
 use App\Service\ContextService;
 use App\Util\APIEnum;
-use App\Util\HtmlTagEnum;
+use App\Util\AITypeEnum;
 use App\Util\TypeDataEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -129,13 +129,13 @@ class RewriteHandler implements HanlderMessageInterface
         $site = $this->siteRepository->find($message->getSiteId());
         $text = $this->AIService->rewrite(
             $message->getUserId(),
-            ($site->getHtmlTag() === HtmlTagEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
+            ($site->getHtmlTag() === AITypeEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
             $message->getOriginalLang(),
             $translateLang,
             $site->getHtmlTag()
         );
-        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
-        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, HtmlTagEnum::TAG_NOT_USE->value);
+        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, AITypeEnum::TAG_NOT_USE->value);
+        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, AITypeEnum::SHORT_VERSION->value);
         $token = ($text->getToken() + $textDescription->getToken() + $textTitle->getToken()) + $message->getToken();
 
         return $message->setTitle($textTitle->getText())

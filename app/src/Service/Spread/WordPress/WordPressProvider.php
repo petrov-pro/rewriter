@@ -2,11 +2,14 @@
 namespace App\Service\Spread\WordPress;
 
 use App\Entity\Context;
+use App\Entity\Site;
 use App\Service\Spread\BaseProvider;
 use App\Service\Spread\SpreadProviderInterface;
 use App\Service\Spread\WordPress\DTO\PostCreateDTO;
 use Exception;
+use Nette\Utils\Image;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class WordPressProvider extends BaseProvider implements SpreadProviderInterface
 {
@@ -18,31 +21,72 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
         return $providerType == self::TYPE;
     }
 
-    public function spread(array $params, Context $context): void
+    public function spread(Context $context, Site $site): void
     {
-        if (!empty($params['post_create'])) {
-            $content = $this->deserialize($params, PostCreateDTO::class);
-        } else {
-            $content = new PostCreateDTO();
-        }
+        $content = $this->deserialize($site->getSetting(), PostCreateDTO::class);
+        $translate = $context->getTranslates()[0];
 
-        $content->setTitle($context->getTitle())
-            ->setExcerpt($context->getDescription())
-            ->setContent($context->getText());
+        $slugger = new AsciiSlugger();
+        $slug = $slugger->slug($translate->getTitle());
+        $content->setTitle($translate->getTitle())
+            ->setExcerpt($translate->getDescription())
+            ->setSlug($slug)
+            ->setContent($translate->getText());
+
+        if ($context->getImages()) {
+            $uploadIdImage = $this->uploadImage($content, $context->getImages(), $slug);
+
+            if ($uploadIdImage) {
+                $content->setFeaturedMedia($uploadIdImage);
+            }
+        }
 
         $options = [
             'headers' => [
-                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
             ],
             'auth_basic' => [$content->getLogin(), $content->getPassword()],
             'body' => $this->serialize($content)
         ];
 
-        $response = \json_decode($this->sendRequest(Request::METHOD_POST, $content->getApiUrl() . 'wp-json/wp/v2/posts', $options), true);
+        $response = \json_decode((string) $this->sendRequest(Request::METHOD_POST, $content->getApiUrl() . 'wp-json/wp/v2/posts', $options), true);
         if (empty($response['title'])) {
             throw new Exception('Empty answer from: ' . $content->getApiUrl());
         }
 
         $this->logger->info('Content was send to wordpress: ' . $content->getApiUrl());
+    }
+
+    private function uploadImage(PostCreateDTO $content, iterable $images, string $slug): string
+    {
+        $uploadIdImage = '';
+        foreach ($images as $image) {
+            foreach ($image->getData() as $key => $url) {
+                $imageData = file_get_contents($url);
+                if ($imageData === false) {
+                    $this->logger->warning('Can not get media by url: ' . $url);
+                    continue;
+                }
+
+                $typeImage = Image::detectTypeFromString($imageData);
+                $options = [
+                    'headers' => [
+                        'Content-Disposition' => 'attachment; filename="' . $slug . '_' . $key . '.' . Image::typeToExtension($typeImage) . '"',
+                        'Content-Type' => Image::typeToMimeType($typeImage),
+                    ],
+                    'auth_basic' => [$content->getLogin(), $content->getPassword()],
+                    'body' => $imageData
+                ];
+
+                $response = \json_decode((string) $this->sendRequest(Request::METHOD_POST, $content->getApiUrl() . 'wp-json/wp/v2/media', $options), true);
+                if (empty($response['id'])) {
+                    $this->logger->warning('Can not upload media for site: ' . $content->getApiUrl());
+                } else {
+                    $uploadIdImage = $response['id'];
+                }
+            }
+        }
+
+        return $uploadIdImage;
     }
 }

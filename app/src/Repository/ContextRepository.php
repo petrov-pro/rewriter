@@ -2,7 +2,6 @@
 namespace App\Repository;
 
 use App\Entity\Context;
-use App\Service\ContextService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
@@ -68,7 +67,9 @@ class ContextRepository extends ServiceEntityRepository
     public function findByIdLang(int $id, string $lang): Context
     {
         $result = $this->createQueryBuilder('c')
+            ->select('c', 't', 'i')
             ->innerJoin('c.translates', 't')
+            ->leftJoin('c.images', 'i', Join::WITH, 'i.site = t.site')
             ->where('c.id = :id')
             ->andWhere('t.lang = :lang')
             ->setParameter('id', $id)

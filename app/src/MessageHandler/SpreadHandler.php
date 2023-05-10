@@ -39,14 +39,25 @@ class SpreadHandler implements HanlderMessageInterface
             return;
         }
 
+        if (!$site->getSetting()) {
+            $this->logger->info('Site has option is_sent but empty settings: ' . $site->getId());
+
+            return;
+        }
+
         $context = $this->contextRepository->findByIdLang($message->getId(), $message->getLang());
 
         if ($site->isImage() && !$context->getImages()) {
-            throw new \Exception('Should wait, not found image for stie: ' . $site->getId());
+            throw new \Exception('Should wait, not found image for site: ' . $site->getId());
         }
 
+        if (!$context->getTranslates()) {
+            throw new \Exception('Should wait, not found translate for site: ' . $site->getId());
+        }
+
+
         $spreadProvider = $this->spreadProviderFactory->create($site->getType());
-        $spreadProvider->spread($site->getSetting(), $context);
+        $spreadProvider->spread($context, $site);
 
         $this->logger->info('Spread finished.');
     }
