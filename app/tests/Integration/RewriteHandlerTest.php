@@ -4,6 +4,7 @@ namespace App\Tests\Integration;
 use App\Entity\Site;
 use App\MessageHandler\Message\ContextInterface;
 use App\MessageHandler\RewriteHandler;
+use App\Messenger\Stamp\LoopCount;
 use App\Repository\SiteRepository;
 use App\Service\AccountService;
 use App\Service\AI\AIInterface;
@@ -50,6 +51,7 @@ class RewriteHandlerTest extends TestCase
             0
         );
 
+        $this->handler->setLoopCount(new LoopCount(2));
         $this->message = $this->createMock(ContextInterface::class);
         $this->message->method('getSourceName')->willReturn('example.com');
         $this->message->method('getTitle')->willReturn('Lorem ipsum');
@@ -132,6 +134,13 @@ class RewriteHandlerTest extends TestCase
                         'lang' => 'en'
                     ]]
         );
+
+        $this->bus->expects($this->once())
+            ->method('dispatch')
+            ->withConsecutive(
+                [$this->isInstanceOf(ContextInterface::class), $this->isType('array')]
+            )
+            ->willReturn(new Envelope(new stdClass()));
 
         $this->handler->handle($this->message);
     }
