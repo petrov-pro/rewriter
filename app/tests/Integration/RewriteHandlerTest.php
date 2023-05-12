@@ -123,12 +123,15 @@ class RewriteHandlerTest extends TestCase
         $this->accountService->method('isEnoughBalance')->willReturn(true);
         $this->siteRepository->method('find')->willReturn((new Site())->setHtmlTag(''));
 
-        $this->bus->expects($this->once())
-            ->method('dispatch')
+        $this->logger->expects($this->exactly(2))
+            ->method('info')
             ->withConsecutive(
-                [$this->isInstanceOf(ContextInterface::class), $this->isType('array')]
-            )
-            ->willReturn(new Envelope(new stdClass()));
+                ['Rewriter get content message', [
+                        'source' => 'example.com',
+                        'title' => 'Lorem ipsum',
+                        'lang' => 'en'
+                    ]]
+        );
 
         $this->handler->handle($this->message);
     }

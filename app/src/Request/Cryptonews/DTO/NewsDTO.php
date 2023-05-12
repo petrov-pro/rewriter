@@ -29,7 +29,6 @@ class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
     private int $site_id;
     private string $provider;
     private int $token = 0;
-    private int $count = 0;
 
     public function getSourceUrl(): string
     {
@@ -217,28 +216,6 @@ class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
         return $this;
     }
 
-    public function getToken(): int
-    {
-        return $this->token;
-    }
-
-    public function setToken(int $token): self
-    {
-        $this->token = $token;
-        return $this;
-    }
-
-    public function getCountRewrite(): int
-    {
-        return $this->count;
-    }
-
-    public function setCountRewrite(int $count): self
-    {
-        $this->count = $count;
-        return $this;
-    }
-
     public function setOriginalLang(string $lang): self
     {
         $this->original_lang = $lang;
@@ -248,5 +225,16 @@ class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
     public function getNewrelicTransactionName()
     {
         return $this->transationName;
+    }
+
+    public function getToken(): int
+    {
+        return $this->token;
+    }
+
+    public function setToken(int $token): self
+    {
+        $this->token = $token;
+        return $this;
     }
 }

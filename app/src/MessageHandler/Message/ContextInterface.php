@@ -59,8 +59,4 @@ interface ContextInterface
     public function setToken(int $token): self;
 
     public function getToken(): int;
-
-    public function getCountRewrite(): int;
-
-    public function setCountRewrite(int $count): self;
 }

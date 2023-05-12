@@ -9,16 +9,20 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 abstract class BaseProvider
 {
 
+    protected const CACHE_TIME = 604800;
+
     public function __construct(
         protected HttpClientInterface $httpClient,
         protected LoggerInterface $logger,
         protected SerializerInterface $serializer,
-        protected ValidatorInterface $validator
+        protected ValidatorInterface $validator,
+        protected CacheInterface $cache
     )
     {
         

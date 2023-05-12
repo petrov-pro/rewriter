@@ -38,7 +38,8 @@ class OrderHandlerTest extends TestCase
             $this->userRepository,
             $this->bus,
             $this->availableLangs,
-            $this->needCreateImage
+            $this->needCreateImage,
+            1
         );
     }
 

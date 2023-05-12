@@ -2,6 +2,7 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
+use App\Messenger\Stamp\LoopCount;
 use App\Repository\UserRepository;
 use Nette\Utils\Arrays;
 use Psr\Log\LoggerInterface;
@@ -18,7 +19,8 @@ class OrderHandler implements HanlderMessageInterface
         private UserRepository $userRepository,
         private MessageBusInterface $bus,
         private array $availableLangs,
-        private bool $needCreateImage
+        private bool $needCreateImage,
+        private int $countRepeatRewrite
     )
     {
         
@@ -48,7 +50,10 @@ class OrderHandler implements HanlderMessageInterface
 
                     $this->bus->dispatch(
                         $message,
-                        [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
+                        [
+                            new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME]),
+                            new LoopCount($this->countRepeatRewrite)
+                        ]
                     );
                 }
             }

@@ -2,6 +2,7 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
+use App\Messenger\Stamp\LoopCount;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 class MessageHandler
@@ -44,9 +45,11 @@ class MessageHandler
     }
 
     #[AsMessageHandler(fromTransport: RewriteHandler::TRANSPORT_NAME)]
-    public function handleRewrite(ContextInterface $message)
+    public function handleRewrite(ContextInterface $message, LoopCount $loopCount)
     {
-        $this->rewriteHandler->handle($message);
+        $this->rewriteHandler
+            ->setLoopCount($loopCount)
+            ->handle($message);
     }
 
     #[AsMessageHandler(fromTransport: SpreadHandler::TRANSPORT_NAME)]

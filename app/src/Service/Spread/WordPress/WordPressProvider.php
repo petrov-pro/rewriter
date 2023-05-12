@@ -6,10 +6,13 @@ use App\Entity\Site;
 use App\Service\Spread\BaseProvider;
 use App\Service\Spread\SpreadProviderInterface;
 use App\Service\Spread\WordPress\DTO\PostCreateDTO;
+use App\Util\Helper;
 use Exception;
 use Nette\Utils\Image;
+use Nette\Utils\Strings;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class WordPressProvider extends BaseProvider implements SpreadProviderInterface
 {
@@ -59,34 +62,37 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
 
     private function uploadImage(PostCreateDTO $content, iterable $images, string $slug): string
     {
-        $uploadIdImage = '';
-        foreach ($images as $image) {
-            foreach ($image->getData() as $key => $url) {
-                $imageData = file_get_contents($url);
-                if ($imageData === false) {
-                    $this->logger->warning('Can not get media by url: ' . $url);
-                    continue;
+        return $this->cache->get(Helper::generateHash(self::class, [$images]), function (ItemInterface $item) use ($content, $images, $slug) {
+                $item->expiresAfter(self::CACHE_TIME);
+                $uploadIdImage = '';
+                foreach ($images as $image) {
+                    foreach ($image->getData() as $key => $url) {
+                        $imageData = file_get_contents($url);
+                        if ($imageData === false) {
+                            $this->logger->warning('Can not get media by url: ' . $url);
+                            continue;
+                        }
+
+                        $typeImage = Image::detectTypeFromString($imageData);
+                        $options = [
+                            'headers' => [
+                                'Content-Disposition' => 'attachment; filename="' . Strings::truncate($slug, 50) . '_' . $key . '.' . Image::typeToExtension($typeImage) . '"',
+                                'Content-Type' => Image::typeToMimeType($typeImage),
+                            ],
+                            'auth_basic' => [$content->getLogin(), $content->getPassword()],
+                            'body' => $imageData
+                        ];
+
+                        $response = \json_decode((string) $this->sendRequest(Request::METHOD_POST, $content->getApiUrl() . 'wp-json/wp/v2/media', $options), true);
+                        if (empty($response['id'])) {
+                            $this->logger->warning('Can not upload media for site: ' . $content->getApiUrl());
+                        } else {
+                            $uploadIdImage = $response['id'];
+                        }
+                    }
                 }
 
-                $typeImage = Image::detectTypeFromString($imageData);
-                $options = [
-                    'headers' => [
-                        'Content-Disposition' => 'attachment; filename="' . $slug . '_' . $key . '.' . Image::typeToExtension($typeImage) . '"',
-                        'Content-Type' => Image::typeToMimeType($typeImage),
-                    ],
-                    'auth_basic' => [$content->getLogin(), $content->getPassword()],
-                    'body' => $imageData
-                ];
-
-                $response = \json_decode((string) $this->sendRequest(Request::METHOD_POST, $content->getApiUrl() . 'wp-json/wp/v2/media', $options), true);
-                if (empty($response['id'])) {
-                    $this->logger->warning('Can not upload media for site: ' . $content->getApiUrl());
-                } else {
-                    $uploadIdImage = $response['id'];
-                }
-            }
-        }
-
-        return $uploadIdImage;
+                return $uploadIdImage;
+            });
     }
 }

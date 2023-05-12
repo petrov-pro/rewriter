@@ -2,13 +2,15 @@
 namespace App\MessageHandler;
 
 use App\MessageHandler\Message\ContextInterface;
+use App\Messenger\LoopMessageInterface;
+use App\Messenger\Trait\LoopTrait;
 use App\Repository\SiteRepository;
 use App\Service\AccountService;
 use App\Service\AI\AIInterface;
 use App\Service\AI\TooMuchTokenException;
 use App\Service\ContextService;
-use App\Util\APIEnum;
 use App\Util\AITypeEnum;
+use App\Util\APIEnum;
 use App\Util\TypeDataEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -16,8 +18,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
-class RewriteHandler implements HanlderMessageInterface
+class RewriteHandler implements HanlderMessageInterface, LoopMessageInterface
 {
+
+    use LoopTrait;
 
     public const TRANSPORT_NAME = 'rewrite';
 
@@ -28,8 +32,7 @@ class RewriteHandler implements HanlderMessageInterface
         private SiteRepository $siteRepository,
         private LoggerInterface $logger,
         private MessageBusInterface $bus,
-        private TagAwareCacheInterface $cache,
-        private int $countRepeatRewrite
+        private TagAwareCacheInterface $cache
     )
     {
         
@@ -79,10 +82,9 @@ class RewriteHandler implements HanlderMessageInterface
 
             $message = $this->rewriteProcess($message);
 
-            if ($message->getCountRewrite() >= $this->countRepeatRewrite) {
-
+            if ($this->loopCount->isMaxCount()) {
                 $this->saveContext($message);
-                $this->logger->info('Rewriter finished content message',
+                $this->logger->info('Rewriter finished content message and send to spread consumer',
                     [
                         'source' => $message->getSourceName(),
                         'title' => $message->getTitle()
@@ -93,16 +95,20 @@ class RewriteHandler implements HanlderMessageInterface
                 return;
             }
 
-            $message->setCountRewrite($message->getCountRewrite() + 1);
-            $this->logger->info('Rewriter send again content message: ' . $message->getCountRewrite(),
+
+            $this->logger->info('Rewriter resend content message',
                 [
                     'source' => $message->getSourceName(),
                     'title' => $message->getTitle()
                 ]
             );
+
             $this->bus->dispatch(
                 $message,
-                [new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME])]
+                [
+                    new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME]),
+                    $this->loopCount
+                ]
             );
         } catch (TooMuchTokenException $ex) {
             $this->logger->info($ex->getMessage(), [
@@ -136,18 +142,26 @@ class RewriteHandler implements HanlderMessageInterface
         );
         $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, AITypeEnum::TAG_NOT_USE->value);
         $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, AITypeEnum::SHORT_VERSION->value);
-        $token = ($text->getToken() + $textDescription->getToken() + $textTitle->getToken()) + $message->getToken();
+        $token = ($textDescription->getToken() + $textTitle->getToken() + $text->getToken()) + $message->getToken();
+
+        $this->accountService->withdraw(
+            $this->AIService->findCost(
+                TypeDataEnum::TEXT,
+                $token
+            ),
+            $message->getUserId(),
+            true
+        );
 
         return $message->setTitle($textTitle->getText())
                 ->setDescription($textDescription->getText())
                 ->setText($text->getText())
-                ->setOriginalLang($message->getLang())
-                ->setToken($token);
+                ->setToken($token)
+                ->setOriginalLang($message->getLang());
     }
 
     private function saveContext(ContextInterface $message): void
     {
-        ///transactional
         $this->contextService->saveModifyContext(
             $message->getId(),
             $message->getUserId(),
@@ -157,15 +171,6 @@ class RewriteHandler implements HanlderMessageInterface
             $message->getTitle(),
             $message->getLang(),
             $message->getToken(),
-            false
-        );
-
-        $this->accountService->withdraw(
-            $this->AIService->findCost(
-                TypeDataEnum::TEXT,
-                $message->getToken()
-            ),
-            $message->getUserId(),
             true
         );
     }

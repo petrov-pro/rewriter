@@ -2,6 +2,7 @@
 namespace App\Service\Spread\WordPress\DTO;
 
 use App\Service\Spread\DTO\BaseDTO;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class PostCreateDTO extends BaseDTO
@@ -20,10 +21,16 @@ class PostCreateDTO extends BaseDTO
     private string $format = 'standard';
     private array $categories;
     private string $author;
-    private string $featured_media;
+
+    #[SerializedName('featured_media')]
+    private string $featuredMedia;
     private string $slug;
-    private string $comment_status = 'closed';
-    private string $ping_status;
+
+    #[SerializedName('comment_status')]
+    private string $commentStatus = 'closed';
+
+    #[SerializedName('ping_status')]
+    private string $pingStatus;
     private array $meta;
     private string $sticky;
     private string $template;
@@ -71,7 +78,7 @@ class PostCreateDTO extends BaseDTO
 
     public function getFeaturedMedia(): string
     {
-        return $this->featured_media;
+        return $this->featuredMedia;
     }
 
     public function getSlug(): string
@@ -81,12 +88,12 @@ class PostCreateDTO extends BaseDTO
 
     public function getCommentStatus(): string
     {
-        return $this->comment_status;
+        return $this->commentStatus;
     }
 
     public function getPingStatus(): string
     {
-        return $this->ping_status;
+        return $this->pingStatus;
     }
 
     public function getMeta(): array
@@ -159,7 +166,7 @@ class PostCreateDTO extends BaseDTO
 
     public function setFeaturedMedia(string $featured_media)
     {
-        $this->featured_media = $featured_media;
+        $this->featuredMedia = $featured_media;
         return $this;
     }
 
@@ -171,13 +178,13 @@ class PostCreateDTO extends BaseDTO
 
     public function setCommentStatus(string $comment_status)
     {
-        $this->comment_status = $comment_status;
+        $this->commentStatus = $comment_status;
         return $this;
     }
 
     public function setPingStatus(string $ping_status)
     {
-        $this->ping_status = $ping_status;
+        $this->pingStatus = $ping_status;
         return $this;
     }
 
