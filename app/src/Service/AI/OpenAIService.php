@@ -8,6 +8,7 @@ use App\Service\AI\DTO\OpenAI\ImageDTO;
 use App\Service\AI\DTO\OpenAI\TextDTO;
 use App\Service\AI\DTO\TextInterface;
 use App\Util\AITypeEnum;
+use App\Util\Helper;
 use App\Util\TypeDataEnum;
 use Exception;
 use Orhanerday\OpenAi\OpenAi;
@@ -51,48 +52,53 @@ class OpenAIService implements AIInterface
             default => ', text must be formatted with html tags: ' . $type,
         };
 
-        return $this->cache->get($this->makeHash($idt, $textRewrite, $translateTo, $modificator), function (ItemInterface $item) use ($textRewrite, $langOriginal, $translateTo, $modificator) {
-                $item->expiresAfter(self::CACHE_TIME);
-                $system = 'Rewrite on ' . $langOriginal . ($translateTo ? ', translate into ' . $translateTo : '') . ($modificator ? $modificator : '') . '.';
+        return $this->cache->get(Helper::generateHash(__METHOD__, [$idt, $textRewrite, $translateTo, $modificator]),
+                function (ItemInterface $item) use ($textRewrite, $langOriginal, $translateTo, $modificator) {
+                    $item->expiresAfter(self::CACHE_TIME);
+                    $system = 'Rewrite on ' . $langOriginal . ($translateTo ? ', translate into ' . $translateTo : '') . ($modificator ? $modificator : '') . '.';
 
-                return $this->chat($textRewrite, $system);
-            });
+                    return $this->chat($textRewrite, $system);
+                });
     }
 
     public function keywords(mixed $idt, string $title, int $count = 6): TextInterface
     {
-        return $this->cache->get($this->makeHash($idt, $title, $count), function (ItemInterface $item) use ($title, $count) {
-                $item->expiresAfter(self::CACHE_TIME);
+        return $this->cache->get(Helper::generateHash(__METHOD__, [$idt, $title, $count]),
+                function (ItemInterface $item) use ($title, $count) {
+                    $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->chat($title, "Make $count main keywords, make in one string over a comma: ");
-            });
+                    return $this->chat($title, "Make $count main keywords, make in one string over a comma: ");
+                });
     }
 
     public function translate(mixed $idt, string $text, string $lang): TextInterface
     {
-        return $this->cache->get($this->makeHash($idt, $text, $lang), function (ItemInterface $item) use ($text, $lang) {
-                $item->expiresAfter(self::CACHE_TIME);
+        return $this->cache->get(Helper::generateHash(__METHOD__, [$idt, $text, $lang]),
+                function (ItemInterface $item) use ($text, $lang) {
+                    $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->chat($text, "Translate to $lang, leave tags: ");
-            });
+                    return $this->chat($text, "Translate to $lang, leave tags: ");
+                });
     }
 
     public function createImage(mixed $idt, string $prompt, string $type = 'url'): ImageInterface
     {
-        return $this->cache->get($this->makeHash($idt, $prompt, $type), function (ItemInterface $item) use ($prompt, $type) {
-                $item->expiresAfter(self::CACHE_TIME);
+        return $this->cache->get(Helper::generateHash(__METHOD__, [$idt, $prompt, $type]),
+                function (ItemInterface $item) use ($prompt, $type) {
+                    $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->image('Draw a picture using the following keywords: ' . $prompt, $type);
-            });
+                    return $this->image('Draw a picture using the following keywords: ' . $prompt, $type);
+                });
     }
 
     public function editImage(mixed $idt, string $prompt, string $imagePath, string $type = 'url'): ImageInterface
     {
-        return $this->cache->get($this->makeHash($idt, $prompt, $imagePath, $type), function (ItemInterface $item) use ($prompt, $imagePath, $type) {
-                $item->expiresAfter(self::CACHE_TIME);
+        return $this->cache->get(Helper::generateHash(__METHOD__, [$idt, $prompt, $imagePath, $type]),
+                function (ItemInterface $item) use ($prompt, $imagePath, $type) {
+                    $item->expiresAfter(self::CACHE_TIME);
 
-                return $this->image($prompt, $type, $imagePath);
-            });
+                    return $this->image($prompt, $type, $imagePath);
+                });
     }
 
     public function findSupposedCost(TypeDataEnum $type, mixed $token): int
@@ -225,11 +231,6 @@ class OpenAIService implements AIInterface
             $this->logger->error($ex->getMessage());
             throw $ex;
         }
-    }
-
-    private function makeHash(...$params): string
-    {
-        return md5(serialize($params));
     }
 
     private function checkError(string $response): void

@@ -65,7 +65,7 @@ class ContextController extends AbstractController
         $source = $request->query->get('source') ?? '';
         $siteId = $request->query->get('site_id') ?? 0;
 
-        $contexts = $this->cache->get(Helper::generateHash(__CLASS__, $request->query->all()), function (ItemInterface $item) use ($repository, $page, $limit, $source, $siteId) {
+        $contexts = $this->cache->get(Helper::generateHash(__METHOD__, $request->query->all()), function (ItemInterface $item) use ($repository, $page, $limit, $source, $siteId) {
             $item->expiresAfter((int) APIEnum::CACHE_LIVE->value);
             $item->tag([APIEnum::CACHE_TAG->value, APIEnum::CACHE_TAG_USER->value . $this->security->getUser()->getId()]);
 

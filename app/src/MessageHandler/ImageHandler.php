@@ -110,8 +110,8 @@ class ImageHandler implements HanlderMessageInterface
                 return;
             }
 
-            $keywords = $this->AIService->keywords($message->getUserId(), $message->getTitle());
-            $imageAI = $this->AIService->createImage($message->getUserId(), NormalizeText::handle($keywords->getText()));
+            $keywords = $this->AIService->keywords($message->getSiteId(), $message->getTitle());
+            $imageAI = $this->AIService->createImage($message->getSiteId(), NormalizeText::handle($keywords->getText()));
 
             //transactional
             $image = (new Image())->setData($imageAI->getImages())

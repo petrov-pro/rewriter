@@ -26,6 +26,7 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
 
     public function spread(Context $context, Site $site): void
     {
+
         $content = $this->deserialize($site->getSetting(), PostCreateDTO::class);
         $translate = $context->getTranslates()[0];
 
@@ -62,10 +63,11 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
 
     private function uploadImage(PostCreateDTO $content, iterable $images, string $slug): string
     {
-        return $this->cache->get(Helper::generateHash(self::class, [$images]), function (ItemInterface $item) use ($content, $images, $slug) {
-                $item->expiresAfter(self::CACHE_TIME);
-                $uploadIdImage = '';
-                foreach ($images as $image) {
+        foreach ($images as $image) {
+            $uploadIdImage = $this->cache->get(Helper::generateHash(__METHOD__, [$image->getSite(), $image->getData()]),
+                function (ItemInterface $item) use ($content, $image, $slug) {
+                    $item->expiresAfter(self::CACHE_TIME);
+
                     foreach ($image->getData() as $key => $url) {
                         $imageData = file_get_contents($url);
                         if ($imageData === false) {
@@ -90,9 +92,11 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
                             $uploadIdImage = $response['id'];
                         }
                     }
-                }
 
-                return $uploadIdImage;
-            });
+                    return $uploadIdImage ?? '';
+                });
+        }
+
+        return $uploadIdImage ?? '';
     }
 }

@@ -134,14 +134,14 @@ class RewriteHandler implements HanlderMessageInterface, LoopMessageInterface
         $translateLang = ($message->getLang() !== $message->getOriginalLang()) ? $message->getLang() : '';
         $site = $this->siteRepository->find($message->getSiteId());
         $text = $this->AIService->rewrite(
-            $message->getUserId(),
+            $message->getSiteId(),
             ($site->getHtmlTag() === AITypeEnum::TAG_NOT_USE->value) ? strip_tags($message->getText()) : $message->getText(),
             $message->getOriginalLang(),
             $translateLang,
             $site->getHtmlTag()
         );
-        $textDescription = $this->AIService->rewrite($message->getUserId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, AITypeEnum::TAG_NOT_USE->value);
-        $textTitle = $this->AIService->rewrite($message->getUserId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, AITypeEnum::SHORT_VERSION->value);
+        $textDescription = $this->AIService->rewrite($message->getSiteId(), $message->getDescription(), $message->getOriginalLang(), $translateLang, AITypeEnum::TAG_NOT_USE->value);
+        $textTitle = $this->AIService->rewrite($message->getSiteId(), $message->getTitle(), $message->getOriginalLang(), $translateLang, AITypeEnum::SHORT_VERSION->value);
         $token = ($textDescription->getToken() + $textTitle->getToken() + $text->getToken()) + $message->getToken();
 
         $this->accountService->withdraw(
