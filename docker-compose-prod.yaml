@@ -23,7 +23,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     ports:
       - 5672
-      - 15672:15672
+      - 15672
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
@@ -35,16 +35,12 @@ services:
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
       POSTGRES_USER: ${POSTGRES_USER:-app}
     ports:
       - 5432
     volumes:
       - database_data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
     networks:
       - app-network
 
@@ -56,7 +52,7 @@ services:
       dockerfile: php/Dockerfile.prod
     restart: always
     ports:
-      - "9000"
+      - 9000
     environment:
       - APP_ENV=${APP_ENV}
     depends_on:
@@ -76,7 +72,7 @@ services:
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
       - TZ=Europe/London
     ports:
-      - "8191"
+      - 8191
     restart: unless-stopped
     networks:
       - app-network
@@ -85,18 +81,16 @@ services:
     image: redis:6.2.6-alpine
     restart: always
     ports:
-      - "6379"
+      - 6379
     volumes:
       - redis_data:/data
     networks:
       - app-network
 
 volumes:
-###> doctrine/doctrine-bundle ###
   database_data:
   rabbitmq_data:
   redis_data:
-###< doctrine/doctrine-bundle ###
 
 networks:
   app-network:

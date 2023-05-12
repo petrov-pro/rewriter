@@ -54,7 +54,7 @@ COPY ./app /var/www/html
 
 WORKDIR /var/www/html
 
-ENV COMPOSER_ALLOW_SUPERUSER=1
+#ENV COMPOSER_ALLOW_SUPERUSER=1
 
 RUN composer clearcache \
     && composer install \
