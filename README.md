@@ -21,7 +21,9 @@ API description
 
 ## Deploy
 git pull
-docker rebuild
+
+docker compose -f docker-compose-prod.yaml down
+docker compose -f docker-compose-prod.yaml up --build
 
 
 #Dev
