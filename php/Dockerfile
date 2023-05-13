@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     librabbitmq-dev \
     unzip \
     wget \
+    cron \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl zip
 
@@ -40,7 +41,12 @@ RUN wget https://github.com/symfony/cli/releases/download/v4.25.6/symfony_linux_
 RUN apt-get install -y supervisor
 RUN mkdir -p /var/log/supervisor
 
+COPY ./cron/main-crontab /etc/cron.d/main-crontab
+RUN chmod 0644 /etc/cron.d/main-crontab
+RUN crontab /etc/cron.d/main-crontab
+
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
+
 
 RUN \
   curl -L https://download.newrelic.com/php_agent/release/newrelic-php5-10.9.0.324-linux.tar.gz | tar -C /tmp -zx && \

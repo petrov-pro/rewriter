@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libonig-dev \
     librabbitmq-dev \
+    cron \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl zip
 
@@ -30,6 +31,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN  apt-get install -y supervisor
 RUN mkdir -p /var/log/supervisor
+
+COPY ./cron/main-crontab /etc/cron.d/main-crontab
+RUN chmod 0644 /etc/cron.d/main-crontab
+RUN crontab /etc/cron.d/main-crontab
 
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
 
