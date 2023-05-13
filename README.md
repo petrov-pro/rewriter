@@ -13,12 +13,18 @@ API description
 
 4 sudo chown www-data:www-data -R ./app/
 
-DB
+#DB
 
 ./bin/console doctrine:migrations:migrate
 ./bin/console --env=dev doctrine:fixtures:load
 
-```
+
+## Deploy
+git pull
+docker rebuild
+
+
+#Dev
 For control workers - supervisorctl status
 
 For debug setup web root in project(netbeans)
