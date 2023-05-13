@@ -13,11 +13,10 @@ API description
 
 4 sudo chown www-data:www-data -R ./app/
 
-Install DB
+DB
 
-Create DB, run migration, run fixture
-
- ./bin/console  doctrine:fixtures:load 
+./bin/console doctrine:migrations:migrate
+./bin/console --env=dev doctrine:fixtures:load
 
 ```
 For control workers - supervisorctl status

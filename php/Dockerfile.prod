@@ -61,7 +61,7 @@ RUN composer clearcache \
     && composer dumpautoload -o \
     && composer dump-env prod
 
-
+RUN chown -R www-data:www-data /var/log/newrelic/
 RUN chown -R www-data:www-data /var/www/html
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www
 
