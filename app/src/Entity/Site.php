@@ -80,6 +80,7 @@ class Site
     private array $lang = [];
 
     #[Assert\Type('bool')]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column]
     private ?bool $is_send = false;
 
