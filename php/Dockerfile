@@ -79,6 +79,4 @@ RUN composer clearcache \
 RUN chown -R www-data:www-data /var/www/html
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www
 
-USER www-data
-
 CMD ["/usr/bin/supervisord"]
