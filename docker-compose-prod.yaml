@@ -9,7 +9,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./app/public:/var/www/html:ro
+      - source_data:/var/www/html
     depends_on:
       - php
     networks:
@@ -55,6 +55,8 @@ services:
       - 9000
     environment:
       - APP_ENV=${APP_ENV}
+    volumes:
+      - source_data:/var/www/html
     depends_on:
       - database
       - rabbitmq

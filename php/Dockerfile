@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     wget \
     cron \
+    nano \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl zip
 
@@ -44,6 +45,7 @@ RUN mkdir -p /var/log/supervisor
 COPY ./cron/main-crontab /etc/cron.d/main-crontab
 RUN chmod 0644 /etc/cron.d/main-crontab
 RUN crontab /etc/cron.d/main-crontab
+RUN touch /var/log/cron.log
 
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
 
