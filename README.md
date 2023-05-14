@@ -21,7 +21,7 @@ API description
 
 ## Deploy
 git pull
-
+docker volumes rm  PREFIX--source_data
 docker compose -f docker-compose-prod.yaml down
 docker compose -f docker-compose-prod.yaml up --build -d
 
