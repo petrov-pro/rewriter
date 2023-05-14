@@ -265,6 +265,15 @@ class Common implements SiteParserInterface
             'supportTagWithAttribute' => [
             ]
         ],
+        'NewsBTC' => [
+            'pattern' => "//div[contains(@class, 'content-inner')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+                '-Featured Image from '
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
     ];
     private const SOURCE_NAME_NOT_WANT = [
         'Benzinga',
