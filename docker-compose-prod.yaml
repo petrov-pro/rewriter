@@ -93,6 +93,7 @@ volumes:
   database_data:
   rabbitmq_data:
   redis_data:
+  source_data:
 
 networks:
   app-network:
