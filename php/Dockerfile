@@ -44,7 +44,7 @@ RUN mkdir -p /var/log/supervisor
 
 COPY ./cron/main-crontab /etc/cron.d/main-crontab
 RUN chmod 0644 /etc/cron.d/main-crontab
-RUN crontab /etc/cron.d/main-crontab
+#RUN crontab /etc/cron.d/main-crontab
 RUN touch /var/log/cron.log
 
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
