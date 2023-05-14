@@ -56,14 +56,16 @@ RUN \
       /usr/local/etc/php/conf.d/newrelic.ini
 
 COPY ./app /var/www/html
+copy ./php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 WORKDIR /var/www/html
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
 RUN composer clearcache \
-    && composer install \
+    && composer install --no-dev \
     && composer dumpautoload -o \
+    && composer dump-autoload --no-dev --classmap-authoritative \
     && composer dump-env prod
 
 RUN chown -R www-data:www-data /var/log/newrelic/
