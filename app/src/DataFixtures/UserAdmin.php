@@ -3,11 +3,10 @@ namespace App\DataFixtures;
 
 use App\Entity\User;
 use App\Service\AccountService;
-use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
-class UserAdmin extends Fixture
+class UserAdmin
 {
 
     public function __construct(
