@@ -2,7 +2,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Service\AccountService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -13,7 +12,6 @@ class UserAdmin extends Fixture
 
     public function __construct(
         private AccountService $accountService,
-        private UserRepository $userRepository,
         private string $adminEmail
     )
     {
