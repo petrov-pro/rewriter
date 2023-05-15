@@ -189,7 +189,7 @@ class OpenAIService implements AIInterface
             ];
 
             $complete = $this->openAI->completion($data);
-            $this->logger->debug("Response openIA completion", $complete);
+            $this->logger->debug("Response openIA completion", $data);
 
             $this->checkError($complete);
 
@@ -223,7 +223,7 @@ class OpenAIService implements AIInterface
             ];
 
             $complete = $this->openAI->chat($data);
-            $this->logger->debug("Response openIA completion", $complete);
+            $this->logger->debug("Response openIA completion", $data);
 
             $this->checkError($complete);
 
