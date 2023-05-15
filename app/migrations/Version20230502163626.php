@@ -42,7 +42,7 @@ final class Version20230502163626 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_C53D045F6B00C1CF ON image (context_id)');
         $this->addSql('CREATE INDEX IDX_C53D045F9395C3F3 ON image (customer_id)');
         $this->addSql('CREATE INDEX IDX_C53D045FF6BD1646 ON image (site_id)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_C53D045F6B00C1CF9395C3F3 ON image (context_id, customer_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_C53D045F6B00C1CF9395C3F3 ON image (context_id, customer_id, site_id)');
         $this->addSql('COMMENT ON COLUMN image.data IS \'(DC2Type:simple_array)\'');
         $this->addSql('CREATE TABLE site (id INT NOT NULL, customer_id INT NOT NULL, url TEXT NOT NULL, is_valid BOOLEAN NOT NULL, setting JSON DEFAULT NULL, type VARCHAR(255) NOT NULL, html_tag VARCHAR(255) DEFAULT NULL, is_image BOOLEAN NOT NULL, category TEXT NOT NULL, lang TEXT NOT NULL, is_send BOOLEAN NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_694309E49395C3F3 ON site (customer_id)');

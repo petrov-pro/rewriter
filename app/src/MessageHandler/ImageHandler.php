@@ -49,7 +49,7 @@ class ImageHandler implements HanlderMessageInterface
             );
 
             if (!$this->needCreateImage) {
-                $this->logger->info('Image skip content message',
+                $this->logger->info('Image skip content message, disable main option',
                     [
                         'source' => $message->getSourceName(),
                         'title' => $message->getTitle(),
@@ -98,9 +98,10 @@ class ImageHandler implements HanlderMessageInterface
 
             if ($this->imageRepository->findOneBy([
                     'customer' => $message->getUserId(),
-                    'context' => $message->getId()
+                    'context' => $message->getId(),
+                    'site' => $message->getSiteId()
                 ])) {
-                $this->logger->warning('Image skip content message',
+                $this->logger->warning('Image skip content message, because cant find context: ' . $message->getId(),
                     [
                         'source' => $message->getSourceName(),
                         'title' => $message->getTitle(),

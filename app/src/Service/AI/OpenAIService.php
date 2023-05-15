@@ -48,7 +48,7 @@ class OpenAIService implements AIInterface
             AITypeEnum::TAG_AI->value => ', text must be formatted with html tags: <p> <span>',
             AITypeEnum::TAG_DEFAULT->value => ', keep existing html tags',
             AITypeEnum::TAG_NOT_USE->value => '',
-            AITypeEnum::SHORT_VERSION->value => ', short version',
+            AITypeEnum::SHORT_VERSION->value => ', no more than one line',
             default => ', text must be formatted with html tags: ' . $type,
         };
 

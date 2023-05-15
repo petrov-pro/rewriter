@@ -13,6 +13,7 @@ when@dev:
                 level: debug
                 channels: ["!event"]
                 date_format: "Y-m-d H:i:s"
+                formatter: 'monolog.formatter.syslog'
             # uncomment to get logging in your browser
             # you may have to allow bigger header sizes in your Web server configuration
             #firephp:

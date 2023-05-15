@@ -37,6 +37,9 @@ services:
     Orhanerday\OpenAi\OpenAi: ~
     PHPHtmlParser\Dom: ~
     App\Service\Proxy\NewRelicBusProxy: ~
+    
+    monolog.formatter.syslog:
+        class: Monolog\Formatter\SyslogFormatter
  
 #Description
     _instanceof:
