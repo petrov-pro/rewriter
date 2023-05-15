@@ -16,7 +16,7 @@ API description
 #DB
 
 ./bin/console doctrine:migrations:migrate
-./bin/console --env=dev doctrine:fixtures:load
+./bin/console app:user --admin
 
 
 ## Deploy
@@ -32,3 +32,8 @@ For control workers - supervisorctl status
 For debug setup web root in project(netbeans)
 
 For console command export XDEBUG_CONFIG="idekey=PHPSTORM"
+
+sudo lnav /var/lib/docker/volumes/rewriter_source_data/_data/var/log/prod-2023-05-15.log
+
+pgcli -h 172.26.0.4 -u rewriter
+

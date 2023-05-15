@@ -66,6 +66,7 @@ when@prod:
                 # max number of log files to keep
                 # defaults to zero, which means infinite files
                 max_files: 3
+                formatter: 'monolog.formatter.syslog'
             console:
                 type: console
                 process_psr_3_messages: false

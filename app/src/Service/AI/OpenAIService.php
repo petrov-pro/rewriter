@@ -15,6 +15,7 @@ use Orhanerday\OpenAi\OpenAi;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -29,6 +30,7 @@ class OpenAIService implements AIInterface
     public const ADDITIONAL_COUNT_TOKEN = 200;
     private const CACHE_TIME = 604800;
     private const RICH_LIMIT_ERROR_TYPE = 'tokens';
+    private const INVALID_REQUEST = 'invalid_request_error';
 
     public function __construct(
         private int $maxToken,
@@ -159,11 +161,12 @@ class OpenAIService implements AIInterface
             }
 
             $complete = $this->openAI->{$typeOperation}($data);
-            $response = json_decode($complete);
             $this->logger->debug("Response image", [
-                'response' => $response,
+                'response' => $complete,
                 'prompt' => $prompt
             ]);
+
+            $this->checkError($complete);
 
             return $this->serializer->deserialize($complete, ImageDTO::class, JsonEncoder::FORMAT, [
                     AbstractNormalizer::ALLOW_EXTRA_ATTRIBUTES => true
@@ -186,7 +189,7 @@ class OpenAIService implements AIInterface
             ];
 
             $complete = $this->openAI->completion($data);
-            $this->logger->debug("Response openIA completion", $data);
+            $this->logger->debug("Response openIA completion", $complete);
 
             $this->checkError($complete);
 
@@ -220,7 +223,7 @@ class OpenAIService implements AIInterface
             ];
 
             $complete = $this->openAI->chat($data);
-            $this->logger->debug("Response openIA completion", $data);
+            $this->logger->debug("Response openIA completion", $complete);
 
             $this->checkError($complete);
 
@@ -243,6 +246,10 @@ class OpenAIService implements AIInterface
         $errorMessage = json_decode($response, true);
         if (!empty($errorMessage['error']['type']) && $errorMessage['error']['type'] === self::RICH_LIMIT_ERROR_TYPE) {
             throw new RecoverableMessageHandlingException();
+        }
+
+        if (!empty($errorMessage['error']['type']) && $errorMessage['error']['type'] === self::INVALID_REQUEST) {
+            throw new UnrecoverableMessageHandlingException();
         }
 
         throw new AIException('AI Wrong format respone: ' . $response);

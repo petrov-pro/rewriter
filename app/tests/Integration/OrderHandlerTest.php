@@ -58,6 +58,7 @@ class OrderHandlerTest extends TestCase
         $site = new Site();
         $site->setId($siteId);
         $site->setLang($langs);
+        $site->setIsImage(true);
 
         $user->addSite($site);
 
