@@ -39,7 +39,7 @@ class TokenController extends AbstractController
         
     }
 
-    #[Areas(['manager'])]
+    #[Areas(['admin'])]
     #[OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -73,7 +73,7 @@ class TokenController extends AbstractController
         ]);
     }
 
-    #[Areas(['manager'])]
+    #[Areas(['admin'])]
     #[OA\RequestBody(
             required: true,
             content: new OA\JsonContent(

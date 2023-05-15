@@ -41,7 +41,7 @@ class AccountController extends AbstractController
         
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[OA\Response(
             response: Response::HTTP_OK,
             description: 'Successful response',
@@ -55,7 +55,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[OA\Response(
             response: Response::HTTP_OK,
             description: 'Successful response',
@@ -69,7 +69,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    #[Areas(['manager'])]
+    #[Areas(['admin'])]
     #[OA\Response(
             response: Response::HTTP_OK,
             description: 'Successful response',
@@ -103,7 +103,7 @@ class AccountController extends AbstractController
         ]);
     }
 
-    #[Areas(['manager'])]
+    #[Areas(['admin'])]
     #[OA\Response(
             response: Response::HTTP_OK,
             description: 'Successful response',

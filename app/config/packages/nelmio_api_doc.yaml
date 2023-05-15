@@ -16,8 +16,12 @@ nelmio_api_doc:
         api:
            path_patterns: [^/api(?!/doc$)]
            with_annotation: true
+        
+        user:
+           path_patterns: [^/api(?!/doc$)]
+           with_annotation: true
            
-        manager:
+        admin:
                 path_patterns: [ ^/api(?!/doc$) ]
                 with_annotation: true
                 documentation:

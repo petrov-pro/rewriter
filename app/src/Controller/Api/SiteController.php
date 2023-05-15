@@ -52,7 +52,7 @@ class SiteController extends AbstractController
         
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
@@ -61,7 +61,7 @@ class SiteController extends AbstractController
         ]);
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[OA\RequestBody(
             required: true,
             content: new Model(type: Site::class, groups: [APIEnum::GROUP_NAME_CREATE->value])
@@ -88,7 +88,7 @@ class SiteController extends AbstractController
         ]);
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[OA\RequestBody(
             required: true,
             content: new Model(type: Site::class, groups: [APIEnum::GROUP_NAME_UPDATE->value])
@@ -111,7 +111,7 @@ class SiteController extends AbstractController
         ]);
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[Route(path: ['', '/{id}'], methods: 'DELETE')]
     public function delete(Site $site): JsonResponse
     {

@@ -51,7 +51,7 @@ class UserController extends AbstractController
         
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
@@ -60,7 +60,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Areas(['manager'])]
+    #[Areas(['admin'])]
     #[OA\RequestBody(
             required: true,
             content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_CREATE->value])
@@ -93,7 +93,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Areas(['api'])]
+    #[Areas(['user'])]
     #[OA\RequestBody(
             required: true,
             content: new Model(type: User::class, groups: [APIEnum::GROUP_NAME_UPDATE->value])

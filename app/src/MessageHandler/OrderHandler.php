@@ -1,6 +1,7 @@
 <?php
 namespace App\MessageHandler;
 
+use App\Entity\Site;
 use App\MessageHandler\Message\ContextInterface;
 use App\Messenger\Stamp\LoopCount;
 use App\Repository\UserRepository;
@@ -37,32 +38,33 @@ class OrderHandler implements HanlderMessageInterface
         $users = $this->userRepository->findAllActive($message->getCategory());
 
         foreach ($users as $user) {
+            /** @var Site $site */
             foreach ($user->getSites() as $site) {
+
+                $message->setUserId($user->getId())
+                    ->setSiteId($site->getId());
+
                 foreach ($site->getLang() as $lang) {
                     if (!Arrays::contains($this->availableLangs, $lang)) {
                         $this->logger->warning('Skip unsupported lang: ' . $lang);
                         continue;
                     }
 
-                    $message->setLang($lang)
-                        ->setUserId($user->getId())
-                        ->setSiteId($site->getId());
-
                     $this->bus->dispatch(
-                        $message,
+                        $message->setLang($lang),
                         [
                             new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME]),
                             new LoopCount($this->countRepeatRewrite)
                         ]
                     );
                 }
-            }
 
-            if ($this->needCreateImage) {
-                $this->bus->dispatch(
-                    $message,
-                    [new TransportNamesStamp([ImageHandler::TRANSPORT_NAME])]
-                );
+                if ($this->needCreateImage && $site->isImage()) {
+                    $this->bus->dispatch(
+                        $message,
+                        [new TransportNamesStamp([ImageHandler::TRANSPORT_NAME])]
+                    );
+                }
             }
         }
 

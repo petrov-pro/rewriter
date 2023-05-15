@@ -57,7 +57,7 @@ RUN \
       /usr/local/etc/php/conf.d/newrelic.ini
 
 COPY ./app /var/www/html
-copy ./php/local.ini /usr/local/etc/php/conf.d/local.ini
+COPY ./php/local.ini /usr/local/etc/php/conf.d/local.ini
 
 WORKDIR /var/www/html
 
