@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     wget \
     cron \
+    procps \
     nano \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl zip
@@ -76,6 +77,7 @@ RUN composer clearcache \
     && composer install \
     && composer dumpautoload -o
 
+RUN chown -R www-data:www-data /var/log/newrelic/
 RUN chown -R www-data:www-data /var/www/html
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www
 

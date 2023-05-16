@@ -287,7 +287,8 @@ class Common implements SiteParserInterface
         'Benzinga',
         'The Block',
         'Coindesk',
-        'CNBC Television'
+        'CNBC Television',
+        'CryptoSlate'
     ];
 
     public function __construct(
