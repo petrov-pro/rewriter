@@ -64,16 +64,18 @@ class ContextRepository extends ServiceEntityRepository
                 ->execute();
     }
 
-    public function findByIdLang(int $id, string $lang): Context
+    public function findByIdLang(int $id, int $siteId, string $lang): Context
     {
         $result = $this->createQueryBuilder('c')
             ->select('c', 't', 'i')
             ->innerJoin('c.translates', 't')
             ->leftJoin('c.images', 'i', Join::WITH, 'i.site = t.site')
             ->where('c.id = :id')
+            ->andWhere('t.site = :site_id')
             ->andWhere('t.lang = :lang')
             ->setParameter('id', $id)
             ->setParameter('lang', $lang)
+            ->setParameter('site_id', $siteId)
             ->orderBy('c.id', 'DESC')
             ->getQuery()
             ->getOneOrNullResult();

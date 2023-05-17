@@ -23,6 +23,7 @@ services:
             $countImage: '%env(int:COUNT_IMAGE)%'
             $adminEmail: '%env(string:ADMIN_EMAIL)%'
             $countRepeatRewrite: '%env(int:COUNT_REPEAT_REWRITE)%'
+            $countKeyword: '%env(int:COUNT_KEYWORD)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

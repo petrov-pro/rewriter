@@ -31,7 +31,8 @@ class ImageHandler implements HanlderMessageInterface
         private TagAwareCacheInterface $cache,
         private AccountService $accountService,
         private bool $needCreateImage,
-        private int $countImage
+        private int $countImage,
+        private int $countKeyword
     )
     {
         
@@ -111,8 +112,15 @@ class ImageHandler implements HanlderMessageInterface
                 return;
             }
 
-            $keywords = $this->AIService->keywords($message->getSiteId(), $message->getTitle());
-            $imageAI = $this->AIService->createImage($message->getSiteId(), NormalizeText::handle($keywords->getText()));
+            $keywords = $this->AIService->keywords($message->getSiteId(), $message->getDescription(), $this->countKeyword);
+            $imageAI = $this->AIService->createImage(
+                $message->getSiteId(),
+                $this->randomKeywords(
+                    NormalizeText::handle(
+                        $keywords->getText()
+                    )
+                )
+            );
 
             //transactional
             $image = (new Image())->setData($imageAI->getImages())
@@ -152,5 +160,20 @@ class ImageHandler implements HanlderMessageInterface
             $this->logger->error($ex->getMessage(), (array) $ex);
             throw $ex;
         }
+    }
+
+    private function randomKeywords(string $keywords): string
+    {
+        $keywordData = explode(',', $keywords);
+
+        if (count($keywordData) <= 1) {
+            $this->logger->warning("Something wrong with keywords: " . $keywords);
+
+            return $keywordData;
+        }
+
+        shuffle($keywordData);
+        array_pop($keywordData);
+        return implode(",", $keywordData);
     }
 }
