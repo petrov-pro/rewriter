@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ImageRepository::class)]
 #[ORM\UniqueConstraint(
-        columns: ['context_id', 'customer_id']
+        columns: ['context_id', 'customer_id', 'site_id']
     )]
 class Image
 {

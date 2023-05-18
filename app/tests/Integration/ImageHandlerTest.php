@@ -70,7 +70,8 @@ class ImageHandlerTest extends TestCase
             $this->cache,
             $this->accountService,
             true,
-            1
+            1,
+            7
         );
 
         $this->siteRepository->method('find')->willReturn(

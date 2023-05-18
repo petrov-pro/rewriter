@@ -4,7 +4,12 @@ namespace App\MessageHandler;
 use App\Entity\Site;
 use App\MessageHandler\Message\ContextInterface;
 use App\Messenger\Stamp\LoopCount;
+use App\Repository\SiteRepository;
+use App\Repository\TranslateRepository;
 use App\Repository\UserRepository;
+use DateInterval;
+use DateTime;
+use DateTimeImmutable;
 use Nette\Utils\Arrays;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -19,9 +24,12 @@ class OrderHandler implements HanlderMessageInterface
         private LoggerInterface $logger,
         private UserRepository $userRepository,
         private MessageBusInterface $bus,
+        private SiteRepository $siteRepository,
+        private TranslateRepository $translateRepository,
         private array $availableLangs,
         private bool $needCreateImage,
-        private int $countRepeatRewrite
+        private int $countRepeatRewrite,
+        private int $newsItemCount
     )
     {
         
@@ -40,6 +48,10 @@ class OrderHandler implements HanlderMessageInterface
         foreach ($users as $user) {
             /** @var Site $site */
             foreach ($user->getSites() as $site) {
+
+                if (!$this->canOrder($site, $message->getId())) {
+                    continue;
+                }
 
                 $message->setUserId($user->getId())
                     ->setSiteId($site->getId());
@@ -69,5 +81,29 @@ class OrderHandler implements HanlderMessageInterface
         }
 
         $this->logger->info('Order finished.');
+    }
+
+    private function canOrder(Site $site, int $contextId): bool
+    {
+        if (!$site->getFetchContent()) {
+            return true;
+        }
+
+        $updateAt = $site->getUpdateAt();
+        $curent = new DateTimeImmutable();
+
+        $curentCountFetch = $this->translateRepository->countBy($contextId, $site->getId(), $updateAt, $curent);
+
+        if ($curent >= $updateAt->add(new DateInterval($site->getFetchContent()))) {
+            if ($this->newsItemCount >= $curentCountFetch) {
+                return true;
+            }
+
+            $site->setUpdateAt(new DateTimeImmutable());
+            $this->siteRepository->save($site, true);
+            return false;
+        }
+
+        return false;
     }
 }

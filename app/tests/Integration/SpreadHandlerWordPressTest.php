@@ -105,8 +105,13 @@ class SpreadHandlerWordPressTest extends KernelTestCase
             ->method('getSiteId')
             ->willReturn(1);
 
+        $messageMock->expects($this->once())
+            ->method('getLang')
+            ->willReturn("en");
+
         $siteMock = (new Site())
             ->setType(WordPressProvider::TYPE)
+            ->setId(1)
             ->setSetting([
                 'login' => 'test',
                 'password' => 'test',
@@ -167,6 +172,7 @@ class SpreadHandlerWordPressTest extends KernelTestCase
 
         $siteMock = (new Site())
             ->setType(WordPressComProvider::TYPE)
+            ->setId(1)
             ->setSetting([
                 'site' => 'test',
                 'token' => 'test',

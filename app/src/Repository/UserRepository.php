@@ -64,6 +64,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findAllActive(array $categories): array
     {
         $query = $this->createQueryBuilder('u')
+            ->select('u', 's')
             ->innerJoin('u.apiTokens', 't', Join::WITH, "t.is_valid = true AND t.date >= CURRENT_TIMESTAMP()")
             ->innerJoin('u.account', 'a', Join::WITH, "a.balance > " . AccountService::MIN_BALANCE)
             ->innerJoin('u.sites', 's', Join::WITH, 's.is_valid = true')

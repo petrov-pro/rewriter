@@ -5,7 +5,8 @@ use App\Entity\Site;
 use App\Entity\User;
 use App\MessageHandler\Message\ContextInterface;
 use App\MessageHandler\OrderHandler;
-use App\MessageHandler\RewriteHandler;
+use App\Repository\SiteRepository;
+use App\Repository\TranslateRepository;
 use App\Repository\UserRepository;
 use App\Request\Cryptonews\DTO\NewsDTO;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +14,6 @@ use Psr\Log\LoggerInterface;
 use stdClass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 
 class OrderHandlerTest extends TestCase
 {
@@ -24,12 +24,16 @@ class OrderHandlerTest extends TestCase
     private $availableLangs;
     private $needCreateImage;
     private $handler;
+    private $siteRepository;
+    private $translateRepository;
 
     public function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->bus = $this->createMock(MessageBusInterface::class);
+        $this->siteRepository = $this->createMock(SiteRepository::class);
+        $this->translateRepository = $this->createMock(TranslateRepository::class);
         $this->availableLangs = ['en', 'fr'];
         $this->needCreateImage = true;
 
@@ -37,9 +41,12 @@ class OrderHandlerTest extends TestCase
             $this->logger,
             $this->userRepository,
             $this->bus,
+            $this->siteRepository,
+            $this->translateRepository,
             $this->availableLangs,
             $this->needCreateImage,
-            1
+            1,
+            2
         );
     }
 
@@ -70,6 +77,7 @@ class OrderHandlerTest extends TestCase
         $context = new NewsDTO();
         $context->setCategory($category)
             ->setTitle($title)
+            ->setId(2)
             ->setSourceName($sourceName);
 
         $this->bus->expects($this->exactly(3))

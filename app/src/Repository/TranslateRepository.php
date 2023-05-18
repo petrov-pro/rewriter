@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Translate;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TranslateRepository extends ServiceEntityRepository
 {
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Translate::class);
@@ -39,28 +40,18 @@ class TranslateRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Translate[] Returns an array of Translate objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('t.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Translate
-//    {
-//        return $this->createQueryBuilder('t')
-//            ->andWhere('t.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function countBy(int $contextId, int $siteId, DateTimeImmutable $startDt, DateTimeImmutable $endDt): ?int
+    {
+        return $this->createQueryBuilder('t')
+                ->select('count(t.id)')
+                ->andWhere('t.context = :contextId')
+                ->andWhere('t.site = :siteId')
+                ->andWhere('t.create_at BETWEEN :startDt AND :endDt')
+                ->setParameter('contextId', $contextId)
+                ->setParameter('siteId', $siteId)
+                ->setParameter('startDt', $startDt->format('Y-m-d H:i:s'))
+                ->setParameter('endDt', $startDt->format('Y-m-d H:i:s'))
+                ->getQuery()
+                ->getSingleScalarResult();
+    }
 }

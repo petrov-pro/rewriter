@@ -3,9 +3,11 @@ namespace App\Entity;
 
 use App\Repository\SiteRepository;
 use App\Service\Spread\WordPress\WordPressProvider;
+use App\Util\AITypeEnum;
 use App\Util\APIEnum;
 use App\Util\CategoryMainEnum;
-use App\Util\AITypeEnum;
+use App\Util\FetchContentPeriodTypeEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -17,6 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Site
 {
 
+    public const KEY_COUNT_FETCH_CONTENT = '';
     public const TYPE = [WordPressProvider::TYPE, 'none'];
     public const HTML_TAGS = [
         AITypeEnum::TAG_AI->value,
@@ -26,6 +29,24 @@ class Site
     ];
     public const CATEGORIES = [
         CategoryMainEnum::CRYPTO->value
+    ];
+    public const FETCH_CONTENT_PERIOD_TYPE = [
+        FetchContentPeriodTypeEnum::ALWAYS->value,
+        FetchContentPeriodTypeEnum::EVERY_10_MINUTE->value,
+        FetchContentPeriodTypeEnum::EVERY_30_MINUTE->value,
+        FetchContentPeriodTypeEnum::EVERY_1_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_2_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_3_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_4_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_5_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_6_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_7_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_8_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_9_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_10_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_11_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_12_HOUR->value,
+        FetchContentPeriodTypeEnum::EVERY_1_DAY->value,
     ];
 
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
@@ -83,6 +104,15 @@ class Site
     #[ORM\Column]
     private ?bool $is_send = false;
 
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
+    #[ORM\Column()]
+    private ?DateTimeImmutable $update_at = null;
+
+    #[Assert\Choice(choices: self::FETCH_CONTENT_PERIOD_TYPE)]
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $fetch_content = null;
+
     #[ORM\ManyToOne(inversedBy: 'sites')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $customer = null;
@@ -95,6 +125,7 @@ class Site
 
     public function __construct()
     {
+        $this->update_at = new DateTimeImmutable();
         $this->translate = new ArrayCollection();
         $this->image = new ArrayCollection();
     }
@@ -286,6 +317,30 @@ class Site
     public function setLang(array $lang): self
     {
         $this->lang = $lang;
+
+        return $this;
+    }
+
+    public function getUpdateAt(): ?DateTimeImmutable
+    {
+        return $this->update_at;
+    }
+
+    public function setUpdateAt(?DateTimeImmutable $update_at): self
+    {
+        $this->update_at = $update_at;
+
+        return $this;
+    }
+
+    public function getFetchContent(): ?string
+    {
+        return $this->fetch_content;
+    }
+
+    public function setFetchContent(?string $fetch_content): self
+    {
+        $this->fetch_content = $fetch_content;
 
         return $this;
     }
