@@ -11,7 +11,7 @@ use InvalidArgumentException;
 class AccountService
 {
 
-    public const MIN_BALANCE = 100000;
+    public const MIN_BALANCE = 1000000;
     //one dollar cost 1000000
     public const DIMENSION_TOKEN = 1000000;
 
