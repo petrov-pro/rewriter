@@ -64,7 +64,7 @@ class ContextRepository extends ServiceEntityRepository
                 ->execute();
     }
 
-    public function findByIdLang(int $id, int $siteId, string $lang): Context
+    public function findByIdLang(int $id, int $siteId, string $lang): ?Context
     {
         $result = $this->createQueryBuilder('c')
             ->select('c', 't', 'i')
