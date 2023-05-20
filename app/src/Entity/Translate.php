@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TranslateRepository::class)]
 #[ORM\UniqueConstraint(
-        columns: ['lang', 'context_id', 'customer_id']
+        columns: ['lang', 'context_id', 'customer_id', 'site_id']
     )]
 #[ORM\Index(name: "indx_context_id_site_id_create_at", columns: ['context_id', 'site_id', 'create_at'])]
 class Translate

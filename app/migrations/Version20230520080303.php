@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230518202411 extends AbstractMigration
+final class Version20230520080303 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -42,19 +42,19 @@ final class Version20230518202411 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_C53D045F6B00C1CF ON image (context_id)');
         $this->addSql('CREATE INDEX IDX_C53D045F9395C3F3 ON image (customer_id)');
         $this->addSql('CREATE INDEX IDX_C53D045FF6BD1646 ON image (site_id)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_C53D045F6B00C1CF9395C3F3 ON image (context_id, customer_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_C53D045F6B00C1CF9395C3F3F6BD1646 ON image (context_id, customer_id, site_id)');
         $this->addSql('COMMENT ON COLUMN image.data IS \'(DC2Type:simple_array)\'');
-        $this->addSql('CREATE TABLE site (id INT NOT NULL, customer_id INT NOT NULL, url TEXT NOT NULL, is_valid BOOLEAN NOT NULL, setting JSON DEFAULT NULL, type VARCHAR(255) NOT NULL, html_tag VARCHAR(255) DEFAULT NULL, is_image BOOLEAN NOT NULL, category TEXT NOT NULL, lang TEXT NOT NULL, is_send BOOLEAN NOT NULL, update_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, fetch_content VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE site (id INT NOT NULL, customer_id INT NOT NULL, url TEXT NOT NULL, is_valid BOOLEAN NOT NULL, setting JSON DEFAULT NULL, type VARCHAR(255) NOT NULL, html_tag VARCHAR(255) DEFAULT NULL, is_image BOOLEAN NOT NULL, category TEXT NOT NULL, lang TEXT NOT NULL, is_send BOOLEAN NOT NULL, update_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, fetch_content VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_694309E49395C3F3 ON site (customer_id)');
         $this->addSql('COMMENT ON COLUMN site.category IS \'(DC2Type:simple_array)\'');
         $this->addSql('COMMENT ON COLUMN site.lang IS \'(DC2Type:simple_array)\'');
         $this->addSql('COMMENT ON COLUMN site.update_at IS \'(DC2Type:datetime_immutable)\'');
-        $this->addSql('CREATE TABLE translate (id INT NOT NULL, context_id INT NOT NULL, customer_id INT NOT NULL, site_id INT NOT NULL, title TEXT NOT NULL, text TEXT DEFAULT NULL, description TEXT NOT NULL, lang VARCHAR(2) NOT NULL, create_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT \' NOW()\', token INT DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE translate (id INT NOT NULL, context_id INT NOT NULL, customer_id INT NOT NULL, site_id INT NOT NULL, title TEXT NOT NULL, text TEXT DEFAULT NULL, description TEXT NOT NULL, lang VARCHAR(2) NOT NULL, create_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, token INT DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_4A1063776B00C1CF ON translate (context_id)');
         $this->addSql('CREATE INDEX IDX_4A1063779395C3F3 ON translate (customer_id)');
         $this->addSql('CREATE INDEX IDX_4A106377F6BD1646 ON translate (site_id)');
         $this->addSql('CREATE INDEX indx_context_id_site_id_create_at ON translate (context_id, site_id, create_at)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_4A106377310984626B00C1CF9395C3F3 ON translate (lang, context_id, customer_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_4A106377310984626B00C1CF9395C3F3F6BD1646 ON translate (lang, context_id, customer_id, site_id)');
         $this->addSql('COMMENT ON COLUMN translate.create_at IS \'(DC2Type:datetime_immutable)\'');
         $this->addSql('CREATE TABLE "user" (id INT NOT NULL, email VARCHAR(180) NOT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, max_site INT NOT NULL, company TEXT DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_8D93D649E7927C74 ON "user" (email)');
