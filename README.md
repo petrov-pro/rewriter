@@ -37,3 +37,10 @@ sudo lnav /var/lib/docker/volumes/rewriter_source_data/_data/var/log/prod-2023-0
 
 pgcli -h 172.26.0.4 -u rewriter
 
+
+#Doc
+/api/doc.json/{area}
+/api/doc/{area}
+
+Avial - user, api, admin
+

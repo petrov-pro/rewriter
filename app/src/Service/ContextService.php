@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Entity\Context;
 use App\Entity\Translate;
+use App\Exception\NotFoundException;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ContextRepository;
 use App\Repository\SiteRepository;
@@ -11,7 +12,6 @@ use App\Repository\UserRepository;
 use App\Util\SentimentEnum;
 use App\Util\TypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -140,7 +140,7 @@ class ContextService
     {
         $context = $this->contextRepository->find($id);
         if (!$context) {
-            throw new InvalidArgumentException('Not found context: ' . $id);
+            throw new NotFoundException('Not found context: ' . $id);
         }
 
         return $context;

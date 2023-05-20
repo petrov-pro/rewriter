@@ -3,10 +3,10 @@ namespace App\Service;
 
 use App\Entity\Account;
 use App\Entity\Billing;
+use App\Exception\NotFoundException;
 use App\Repository\AccountRepository;
 use App\Repository\UserRepository;
 use DateTime;
-use InvalidArgumentException;
 
 class AccountService
 {
@@ -59,7 +59,7 @@ class AccountService
         );
 
         if (!$account) {
-            throw new InvalidArgumentException('Not found account for customer: ' . $customerId);
+            throw new NotFoundException('Not found account for customer: ' . $customerId);
         }
 
         return $account;
@@ -69,7 +69,7 @@ class AccountService
     {
         try {
             $account = $this->findAccount($customerId);
-        } catch (InvalidArgumentException $ex) {
+        } catch (NotFoundException $ex) {
             $account = (new Account())
                 ->setCustomer($this->userRepository->findOrThrow($customerId));
         }

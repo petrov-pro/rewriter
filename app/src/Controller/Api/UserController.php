@@ -2,6 +2,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\User;
+use App\Exception\NotFoundException;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Util\APIEnum;
@@ -13,6 +14,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -46,6 +48,7 @@ class UserController extends AbstractController
         private SerializerInterface $serializer,
         private UserRepository $userRepository,
         private AccountService $accountService,
+        private UserPasswordHasherInterface $passwordHasher
     )
     {
         
@@ -55,6 +58,22 @@ class UserController extends AbstractController
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
+        return $this->json($this->security->getUser(), Response::HTTP_OK, [], [
+                'groups' => [APIEnum::GROUP_NAME_SHOW->value]
+        ]);
+    }
+
+    #[Areas(['user'])]
+    #[Route(path: ['', '/get-by-credential'], name: 'app.api.user.get.by.credential', methods: 'POST')]
+    public function getByCredential(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    {
+        $user = $this->userRepository->findByEmail($request->get('email'));
+        if (!$passwordHasher->isPasswordValid($user, $request->get('password'))) {
+            throw new NotFoundException('Credential is not OK');
+        };
+
+        $this->security->login($user);
+
         return $this->json($this->security->getUser(), Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]
         ]);
@@ -71,11 +90,6 @@ class UserController extends AbstractController
     {
         /** @var User $user */
         $user = $this->serializer->deserialize($request->getContent(), User::class, JsonEncoder::FORMAT, [
-            AbstractNormalizer::CALLBACKS => [
-                'password' => function ($innerObject) {
-                    return empty($innerObject) ? '' : \md5($innerObject);
-                }
-            ],
             AbstractObjectNormalizer::GROUPS => [APIEnum::GROUP_NAME_CREATE->value]
         ]);
 
@@ -83,7 +97,8 @@ class UserController extends AbstractController
 
         $term = (int) $request->get('term', 1);
         $user->setRoles($user->getRoles())
-            ->addQuickAPIToken($term);
+            ->addQuickAPIToken($term)
+            ->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 
         $this->userRepository->save($user, false);
         $user->setAccount($this->accountService->setBalance(0, $user->getId(), true));
@@ -110,6 +125,10 @@ class UserController extends AbstractController
         ]);
 
         $this->validate($userUpdate, APIEnum::GROUP_NAME_UPDATE->value);
+
+        if ($user->getPassword()) {
+            $user->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
+        }
         $this->userRepository->save($userUpdate, true);
 
         return $this->json($user, Response::HTTP_OK, [], [

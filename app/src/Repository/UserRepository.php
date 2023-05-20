@@ -1,11 +1,9 @@
 <?php
 namespace App\Repository;
 
-use App\Entity\APIToken;
 use App\Entity\User;
+use App\Exception\NotFoundException;
 use App\Service\AccountService;
-use App\Util\Helper;
-use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Persistence\ManagerRegistry;
@@ -94,7 +92,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user = $this->findOneBy(['email' => $email]);
 
         if (!$user) {
-            throw new \Exception('Can not find user: ' . $email);
+            throw new NotFoundException('Can not find user: ' . $email);
         }
 
         return $user;

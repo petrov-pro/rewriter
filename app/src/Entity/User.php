@@ -46,7 +46,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[Assert\NotBlank(groups: [APIEnum::GROUP_NAME_CREATE->value])]
-    #[Groups([APIEnum::GROUP_NAME_CREATE->value])]
+    #[Groups([APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
     #[ORM\Column]
     private ?string $password = null;
 
