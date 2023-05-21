@@ -16,6 +16,7 @@ use App\Service\AI\DTO\TextInterface;
 use App\Service\ContextService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ImageHandlerTest extends TestCase
@@ -80,6 +81,62 @@ class ImageHandlerTest extends TestCase
         $this->userRepository->method('findOrThrow')->willReturn(new User());
         $this->aiService->method('keywords')->willReturn($keywordsMock);
         $this->aiService->method('createImage')->willReturn($imageMock);
+        $this->aiService->method('findSupposedCost')->willReturn(1);
+        $this->aiService->method('findCost')->willReturn(1);
+        $this->accountService->method('isEnoughBalance')->willReturn(true);
+        $this->accountService->expects($this->exactly(2))->method('withdraw');
+        $this->imageRepository->expects($this->once())->method('save')->willReturnCallback(function ($image, $flush) {
+            $this->assertInstanceOf(Image::class, $image);
+        });
+        $this->logger->expects($this->exactly(2))->method('info');
+
+        $handler->handle($message);
+    }
+
+    public function testHandleViaRejectSafety(): void
+    {
+        $message = $this->createMock(ContextInterface::class);
+        $message->method('getSourceName')->willReturn('test_source');
+        $message->method('getTitle')->willReturn('test_title');
+        $message->method('getLang')->willReturn('en');
+        $message->method('getSiteId')->willReturn(1);
+        $message->method('getUserId')->willReturn(1);
+        $message->method('getId')->willReturn(1);
+
+        $keywordsMock = $this->createMock(TextInterface::class);
+        $keywordsMock->method('getText')->willReturn('Crypto, bitcoin, money');
+        $keywordsMock->method('getToken')->willReturn(1);
+
+        $imageMock = $this->createMock(ImageInterface::class);
+        $imageMock->method('getImages')->willReturn(['url_image', 'url_image1']);
+        $imageMock->method('getCost')->willReturn(1);
+
+        $handler = new ImageHandler(
+            $this->aiService,
+            $this->logger,
+            $this->imageRepository,
+            $this->userRepository,
+            $this->contextService,
+            $this->siteRepository,
+            $this->cache,
+            $this->accountService,
+            true,
+            1,
+            7
+        );
+
+        $this->siteRepository->method('find')->willReturn(
+            (new Site())->setIsImage(true)
+        );
+        $this->userRepository->method('findOrThrow')->willReturn(new User());
+        $this->aiService->method('keywords')->willReturn($keywordsMock);
+        $this->aiService->method('createImage')
+            ->will(
+                $this->onConsecutiveCalls(
+                    $this->throwException(new UnrecoverableMessageHandlingException('Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowed by our safety system.')),
+                    $imageMock
+                )
+        );
         $this->aiService->method('findSupposedCost')->willReturn(1);
         $this->aiService->method('findCost')->willReturn(1);
         $this->accountService->method('isEnoughBalance')->willReturn(true);
