@@ -47,11 +47,11 @@ class SpreadHandler implements HanlderMessageInterface
 
         $context = $this->contextRepository->findByIdLang($message->getId(), $site->getId(), $message->getLang());
 
-        if ($site->isImage() && !$context->getImages()) {
+        if ($site->isImage() && $context->getImages()->isEmpty()) {
             throw new \Exception('Should wait, not found image for site: ' . $site->getId());
         }
 
-        if (!$context->getTranslates()) {
+        if ($context->getTranslates()->isEmpty()) {
             throw new \Exception('Should wait, not found translate for site: ' . $site->getId());
         }
 

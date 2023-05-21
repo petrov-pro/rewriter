@@ -37,7 +37,7 @@ class WordPressProvider extends BaseProvider implements SpreadProviderInterface
             ->setSlug($slug)
             ->setContent($translate->getText());
 
-        if ($context->getImages()) {
+        if (!$context->getImages()->isEmpty()) {
             $uploadIdImage = $this->uploadImage($content, $context->getImages(), $slug);
 
             if ($uploadIdImage) {

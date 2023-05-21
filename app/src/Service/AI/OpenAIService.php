@@ -249,7 +249,7 @@ class OpenAIService implements AIInterface
         }
 
         if (!empty($errorMessage['error']['type']) && $errorMessage['error']['type'] === self::INVALID_REQUEST) {
-            throw new UnrecoverableMessageHandlingException();
+            throw new UnrecoverableMessageHandlingException($errorMessage['error']['message']);
         }
 
         throw new AIException('AI Wrong format respone: ' . $response);

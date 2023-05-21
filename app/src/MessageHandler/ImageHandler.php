@@ -8,12 +8,15 @@ use App\Repository\SiteRepository;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Service\AI\AIInterface;
+use App\Service\ContextProvider\Providers\CryptoNewsService;
 use App\Service\ContextService;
 use App\Util\APIEnum;
+use App\Util\DefaultSafeKeywordEnum;
 use App\Util\NormalizeText;
 use App\Util\TypeDataEnum;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class ImageHandler implements HanlderMessageInterface
@@ -113,14 +116,30 @@ class ImageHandler implements HanlderMessageInterface
             }
 
             $keywords = $this->AIService->keywords($message->getSiteId(), $message->getDescription(), $this->countKeyword);
-            $imageAI = $this->AIService->createImage(
-                $message->getSiteId(),
-                $this->randomKeywords(
-                    NormalizeText::handle(
-                        $keywords->getText()
+            try {
+                $imageAI = $this->AIService->createImage(
+                    $message->getSiteId(),
+                    $this->randomKeywords(
+                        NormalizeText::handle(
+                            $keywords->getText()
+                        )
                     )
-                )
-            );
+                );
+            } catch (UnrecoverableMessageHandlingException $ex) {
+                if (str_contains($ex->getMessage(), 'Your request was rejected as a result of our safety system') !== true) {
+                    throw $ex;
+                }
+
+                $imageAI = $this->AIService->createImage(
+                    $message->getSiteId(),
+                    $this->randomKeywords(
+                        match ($message->getSourceName()) {
+                            CryptoNewsService::class => DefaultSafeKeywordEnum::SOURCE_CRYPTO->value,
+                            default => DefaultSafeKeywordEnum::SOURCE_CRYPTO->value
+                        }
+                    )
+                );
+            }
 
             //transactional
             $image = (new Image())->setData($imageAI->getImages())
