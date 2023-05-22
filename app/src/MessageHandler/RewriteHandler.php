@@ -99,7 +99,8 @@ class RewriteHandler implements HanlderMessageInterface, LoopMessageInterface
             $this->logger->info('Rewriter resend content message',
                 [
                     'source' => $message->getSourceName(),
-                    'title' => $message->getTitle()
+                    'title' => $message->getTitle(),
+                    'loop_count' => $this->loopCount->getCount()
                 ]
             );
 

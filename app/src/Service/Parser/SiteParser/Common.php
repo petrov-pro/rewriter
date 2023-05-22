@@ -282,6 +282,14 @@ class Common implements SiteParserInterface
             'supportTagWithAttribute' => [
             ]
         ],
+        'EWN' => [
+            'pattern' => "//div[contains(@class, 'entry-content')]",
+            'allowTag' => ['p', 'blockquote', 'h2', 'h1', 'h3'],
+            'skipWords' => [
+            ],
+            'supportTagWithAttribute' => [
+            ]
+        ],
     ];
     private const SOURCE_NAME_NOT_WANT = [
         'Benzinga',

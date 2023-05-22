@@ -21,4 +21,8 @@ class LoopCount implements StampInterface
         $this->count++;
     }
 
+    public function getCount(): int
+    {
+        return $this->count;
+    }
 }
