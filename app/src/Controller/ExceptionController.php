@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\DTO\ErrorDTO;
 use App\Exception\NotFoundException;
 use App\Util\APIEnum;
+use InvalidArgumentException;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -20,6 +21,7 @@ class ExceptionController
             ValidatorException::class => $exception->getMessage(),
             NotFoundException::class => $exception->getMessage(),
             NotNormalizableValueException::class => $exception->getMessage(),
+            InvalidArgumentException::class => $exception->getMessage(),
             default => $exception->getStatusText()
         };
 
