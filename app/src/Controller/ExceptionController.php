@@ -7,6 +7,7 @@ use App\Util\APIEnum;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Validator\Exception\ValidatorException;
 
 class ExceptionController
@@ -18,6 +19,7 @@ class ExceptionController
             NotEncodableValueException::class => 'Empy body',
             ValidatorException::class => $exception->getMessage(),
             NotFoundException::class => $exception->getMessage(),
+            NotNormalizableValueException::class => $exception->getMessage(),
             default => $exception->getStatusText()
         };
 

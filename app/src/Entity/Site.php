@@ -12,10 +12,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\UniqueConstraint;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SiteRepository::class)]
+#[ORM\Table(name: '`site`')]
+#[UniqueConstraint(columns: ['url'])]
+#[UniqueEntity('url')]
 class Site
 {
 
@@ -107,6 +112,10 @@ class Site
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column()]
     private ?DateTimeImmutable $update_at = null;
+
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
+    #[ORM\Column(nullable: true)]
+    private ?int $count_repeat = null;
 
     #[Assert\Choice(choices: self::FETCH_CONTENT_PERIOD_TYPE)]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]
@@ -341,6 +350,18 @@ class Site
     public function setFetchContent(?string $fetch_content): self
     {
         $this->fetch_content = $fetch_content;
+
+        return $this;
+    }
+
+    public function getCountRepeat(): ?int
+    {
+        return $this->count_repeat;
+    }
+
+    public function setCountRepeat(?int $count_repeat): self
+    {
+        $this->count_repeat = $count_repeat;
 
         return $this;
     }

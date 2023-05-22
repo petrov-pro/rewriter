@@ -8,7 +8,6 @@ use App\Repository\SiteRepository;
 use App\Repository\TranslateRepository;
 use App\Repository\UserRepository;
 use DateInterval;
-use DateTime;
 use DateTimeImmutable;
 use Nette\Utils\Arrays;
 use Psr\Log\LoggerInterface;
@@ -28,7 +27,7 @@ class OrderHandler implements HanlderMessageInterface
         private TranslateRepository $translateRepository,
         private array $availableLangs,
         private bool $needCreateImage,
-        private int $countRepeatRewrite,
+        private int $countRepeatRewriteMax,
         private int $newsItemCount
     )
     {
@@ -66,7 +65,9 @@ class OrderHandler implements HanlderMessageInterface
                         $message->setLang($lang),
                         [
                             new TransportNamesStamp([RewriteHandler::TRANSPORT_NAME]),
-                            new LoopCount($this->countRepeatRewrite)
+                            new LoopCount(
+                                $this->getCountRepeat($site->getCountRepeat())
+                            )
                         ]
                     );
                 }
@@ -81,6 +82,15 @@ class OrderHandler implements HanlderMessageInterface
         }
 
         $this->logger->info('Order finished.');
+    }
+
+    private function getCountRepeat(?int $countRepeat): int
+    {
+        if (!$countRepeat || $countRepeat >= $this->countRepeatRewriteMax) {
+            return $this->countRepeatRewriteMax;
+        }
+
+        return $countRepeat;
     }
 
     private function canOrder(Site $site, int $contextId): bool

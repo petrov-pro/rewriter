@@ -21,6 +21,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Exception\ValidatorException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -46,7 +47,8 @@ class SiteController extends AbstractController
         private Security $security,
         private ValidatorInterface $validator,
         private SerializerInterface $serializer,
-        private SiteRepository $siteRepository
+        private SiteRepository $siteRepository,
+        private int $countRepeatRewriteMax
     )
     {
         
@@ -134,7 +136,21 @@ class SiteController extends AbstractController
 
     private function validate(Site $entity, string $group): void
     {
-        $errors = $this->validator->validate($entity, null, ['Default', $group]);
+        $errors = $this->validator->validate(
+            $entity,
+            null,
+            ['Default', $group]
+        );
+
+        if (count($errors) > 0) {
+            throw new ValidatorException($errors[0]->getPropertyPath() . ' - ' . $errors[0]->getMessage());
+        }
+
+        $errors = $this->validator->validate(
+            $entity->getCountRepeat(),
+            new LessThanOrEqual($this->countRepeatRewriteMax),
+            ['Default', $group]
+        );
 
         if (count($errors) > 0) {
             throw new ValidatorException($errors[0]->getPropertyPath() . ' - ' . $errors[0]->getMessage());
