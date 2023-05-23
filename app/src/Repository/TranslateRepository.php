@@ -4,6 +4,7 @@ namespace App\Repository;
 use App\Entity\Translate;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -40,18 +41,16 @@ class TranslateRepository extends ServiceEntityRepository
         }
     }
 
-    public function countBy(int $contextId, int $siteId, DateTimeImmutable $startDt, DateTimeImmutable $endDt): ?int
+    public function countBy(int $siteId, DateTimeImmutable $startDt, DateTimeImmutable $endDt): ?int
     {
-        return $this->createQueryBuilder('t')
-                ->select('count(t.id)')
-                ->andWhere('t.context = :contextId')
-                ->andWhere('t.site = :siteId')
-                ->andWhere('t.create_at BETWEEN :startDt AND :endDt')
-                ->setParameter('contextId', $contextId)
-                ->setParameter('siteId', $siteId)
+
+        $rsm = new ResultSetMappingBuilder($this->getEntityManager());
+        $rsm->addScalarResult('id', 'id');
+        return $this->getEntityManager()
+                ->createNativeQuery("SELECT COUNT(count.context_id) as id FROM (SELECT context_id FROM translate WHERE  site_id = :siteId AND create_at BETWEEN :startDt AND :endDt GROUP BY context_id) as count;", $rsm)
                 ->setParameter('startDt', $startDt->format('Y-m-d H:i:s'))
-                ->setParameter('endDt', $startDt->format('Y-m-d H:i:s'))
-                ->getQuery()
+                ->setParameter('endDt', $endDt->format('Y-m-d H:i:s'))
+                ->setParameter('siteId', $siteId)
                 ->getSingleScalarResult();
     }
 }

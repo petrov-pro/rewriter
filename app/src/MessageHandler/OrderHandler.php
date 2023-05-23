@@ -48,7 +48,7 @@ class OrderHandler implements HanlderMessageInterface
             /** @var Site $site */
             foreach ($user->getSites() as $site) {
 
-                if (!$this->canOrder($site, $message->getId())) {
+                if (!$this->canOrder($site)) {
                     continue;
                 }
 
@@ -93,7 +93,7 @@ class OrderHandler implements HanlderMessageInterface
         return $countRepeat;
     }
 
-    private function canOrder(Site $site, int $contextId): bool
+    private function canOrder(Site $site): bool
     {
         if (!$site->getFetchContent()) {
             return true;
@@ -101,10 +101,10 @@ class OrderHandler implements HanlderMessageInterface
 
         $updateAt = $site->getUpdateAt();
         $curent = new DateTimeImmutable();
+        $newUpdateAt = $updateAt->add(new DateInterval($site->getFetchContent()));
 
-        $curentCountFetch = $this->translateRepository->countBy($contextId, $site->getId(), $updateAt, $curent);
-
-        if ($curent >= $updateAt->add(new DateInterval($site->getFetchContent()))) {
+        if ($curent >= $newUpdateAt) {
+            $curentCountFetch = $this->translateRepository->countBy($site->getId(), $updateAt, $curent);
             if ($this->newsItemCount >= $curentCountFetch) {
                 return true;
             }

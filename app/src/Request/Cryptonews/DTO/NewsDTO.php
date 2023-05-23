@@ -11,7 +11,7 @@ class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
 
     public string $transationName = self::class;
     private string $news_url;
-    private string $image_url;
+    private ?string $image_url;
     private string $title;
 
     #[SerializedName('text')]
@@ -86,7 +86,7 @@ class NewsDTO implements ContextInterface, NameableNewrelicTransactionInterface
         return $this;
     }
 
-    public function setImageUrl(string $image_url): self
+    public function setImageUrl(?string $image_url = ''): self
     {
         $this->image_url = $image_url;
         return $this;

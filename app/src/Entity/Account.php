@@ -18,7 +18,7 @@ class Account
     private ?int $id = null;
 
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
-    #[ORM\Column]
+    #[ORM\Column(type: Types::BIGINT)]
     private ?int $balance = null;
 
     #[ORM\OneToOne(inversedBy: 'account', cascade: ['persist', 'remove'])]
