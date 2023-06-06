@@ -17,7 +17,7 @@ framework:
             spread:
                 dsn: "%env(SPREAD_MESSENGER_TRANSPORT_DSN)%"
                 retry_strategy:
-                    max_retries: 10
+                    max_retries: 5
                     # milliseconds delay
                     delay: 60000
                     # causes the delay to be higher before each retry

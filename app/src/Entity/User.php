@@ -13,6 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -55,6 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $max_site = null;
 
+    #[SerializedName('api_tokens')]
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: APIToken::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $apiTokens;
