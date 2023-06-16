@@ -62,6 +62,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $apiTokens;
 
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Billing::class)]
+    #[ORM\OrderBy(['id' => 'DESC'])]
     private Collection $billings;
 
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Image::class)]
@@ -75,6 +76,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Account $account = null;
 
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Site::class, orphanRemoval: true)]
+    #[ORM\OrderBy(['id' => 'DESC'])]
     private Collection $sites;
 
     #[Groups([APIEnum::GROUP_NAME_SHOW->value, APIEnum::GROUP_NAME_CREATE->value, APIEnum::GROUP_NAME_UPDATE->value])]

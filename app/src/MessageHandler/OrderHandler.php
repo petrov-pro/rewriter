@@ -2,6 +2,7 @@
 namespace App\MessageHandler;
 
 use App\Entity\Site;
+use App\Entity\User;
 use App\MessageHandler\Message\ContextInterface;
 use App\Messenger\Stamp\LoopCount;
 use App\Repository\SiteRepository;
@@ -44,9 +45,13 @@ class OrderHandler implements HanlderMessageInterface
         );
         $users = $this->userRepository->findAllActive($message->getCategory());
 
+        /** @var User $user */
         foreach ($users as $user) {
+            $sites = $user->getSites()
+                ->slice(0, $user->getMaxSite());
+
             /** @var Site $site */
-            foreach ($user->getSites() as $site) {
+            foreach ($sites as $site) {
 
                 if (!$this->canOrder($site)) {
                     continue;

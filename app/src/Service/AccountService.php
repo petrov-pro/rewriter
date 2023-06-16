@@ -7,6 +7,7 @@ use App\Exception\NotFoundException;
 use App\Repository\AccountRepository;
 use App\Repository\UserRepository;
 use DateTime;
+use Symfony\Component\Uid\Uuid;
 
 class AccountService
 {
@@ -30,8 +31,12 @@ class AccountService
         return (($account->getBalance() - $price) >= self::MIN_BALANCE);
     }
 
-    public function withdraw(int $amount, int $customerId, bool $flush = false): Account
+    public function withdraw(int $amount, int $customerId, bool $flush = false, string $transactionId = ''): Account
     {
+        if (!$transactionId) {
+            $transactionId = $this->generateTransactionId($customerId);
+        }
+
         $account = $this->findAccount($customerId);
 
         $account->setBalance(
@@ -40,6 +45,7 @@ class AccountService
             (new Billing())
                 ->setSum($amount)
                 ->setType(Billing::TYPE_WITHDRAW)
+                ->setTransactionId($transactionId)
                 ->setSystem(Billing::TYPE_WITHDRAW)
                 ->setDate(new DateTime('now'))
                 ->setCustomer($this->userRepository->findOrThrow($customerId))
@@ -65,8 +71,12 @@ class AccountService
         return $account;
     }
 
-    public function setBalance(int $amount, int $customerId, bool $flush = false): Account
+    public function setBalance(int $amount, int $customerId, bool $flush = false, string $transactionId = ''): Account
     {
+        if (!$transactionId) {
+            $transactionId = $this->generateTransactionId($customerId);
+        }
+
         try {
             $account = $this->findAccount($customerId);
         } catch (NotFoundException $ex) {
@@ -78,6 +88,7 @@ class AccountService
             ->addBilling((new Billing())
                 ->setCustomer($account->getCustomer())
                 ->setType(Billing::TYPE_MODIFY)
+                ->setTransactionId($transactionId)
                 ->setSystem(Billing::SYSTEM)
                 ->setDate(new DateTime('now'))
                 ->setSum($amount)
@@ -88,14 +99,18 @@ class AccountService
         return $account;
     }
 
-    public function deposit(int $amount, int $customerId, bool $flush = false): Account
+    public function deposit(int $amount, int $customerId, bool $flush = false, string $transactionId = ''): Account
     {
+        if (!$transactionId) {
+            $transactionId = $this->generateTransactionId($customerId);
+        }
         $amount = $amount * self::DIMENSION_TOKEN;
         $account = $this->findAccount($customerId);
         $account->addBalance($amount)
             ->addBilling((new Billing())
                 ->setCustomer($account->getCustomer())
                 ->setType(Billing::TYPE_DEPOSIT)
+                ->setTransactionId($transactionId)
                 ->setSystem(Billing::SYSTEM)
                 ->setDate(new DateTime('now'))
                 ->setSum($amount)
@@ -104,5 +119,10 @@ class AccountService
         $this->accountRepository->save($account, $flush);
 
         return $account;
+    }
+
+    private function generateTransactionId(mixed $idt): string
+    {
+        return Uuid::v3(Uuid::v7(), $idt);
     }
 }

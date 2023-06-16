@@ -6,8 +6,10 @@ use App\Util\APIEnum;
 use DateTimeInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\UniqueConstraint;
 use Symfony\Component\Serializer\Annotation\Groups;
 
+#[UniqueConstraint(columns: ['transaction_id'])]
 #[ORM\Entity(repositoryClass: BillingRepository::class)]
 class Billing
 {
@@ -45,6 +47,10 @@ class Billing
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?DateTimeInterface $date = null;
+
+    #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
+    #[ORM\Column(length: 255)]
+    private ?string $transaction_id = null;
 
     public function getId(): ?int
     {
@@ -119,6 +125,18 @@ class Billing
     public function setDate(DateTimeInterface $date): self
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function getTransactionId(): ?string
+    {
+        return $this->transaction_id;
+    }
+
+    public function setTransactionId(string $transaction_id): self
+    {
+        $this->transaction_id = $transaction_id;
 
         return $this;
     }

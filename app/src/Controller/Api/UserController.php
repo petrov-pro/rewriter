@@ -18,7 +18,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Exception\ValidatorException;
@@ -67,10 +66,11 @@ class UserController extends AbstractController
     #[Route(path: ['', '/get-by-credential'], name: 'app.api.user.get.by.credential', methods: 'POST')]
     public function getByCredential(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
+        /** @var User $user */
         $user = $this->userRepository->findByEmail($request->get('email'));
         if (!$passwordHasher->isPasswordValid($user, $request->get('password'))) {
             throw new NotFoundException('Credential is not OK');
-        };
+        }
 
         $this->security->login($user);
 
@@ -95,9 +95,12 @@ class UserController extends AbstractController
 
         $this->validate($user, APIEnum::GROUP_NAME_CREATE->value);
 
-        $term = (int) $request->get('term', 1);
+        $term = (int) $request->get('term');
+        if ($term) {
+            $user->addQuickAPIToken($term);
+        }
+
         $user->setRoles($user->getRoles())
-            ->addQuickAPIToken($term)
             ->setPassword($this->passwordHasher->hashPassword($user, $user->getPassword()));
 
         $this->userRepository->save($user, false);
@@ -132,6 +135,16 @@ class UserController extends AbstractController
         $this->userRepository->save($userUpdate, true);
 
         return $this->json($user, Response::HTTP_OK, [], [
+                'groups' => [APIEnum::GROUP_NAME_SHOW->value]
+        ]);
+    }
+
+    #[Areas(['admin'])]
+    #[IsGranted(User::ROLE_ADMIN)]
+    #[Route(path: ['', '/all'], methods: 'GET')]
+    public function getAll(): JsonResponse
+    {
+        return $this->json($this->userRepository->findAll(), Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]
         ]);
     }

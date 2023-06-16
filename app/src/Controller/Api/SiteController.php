@@ -58,8 +58,25 @@ class SiteController extends AbstractController
     #[Route(path: ['', '/'], methods: 'GET')]
     public function get(): JsonResponse
     {
-        return $this->json($this->security->getUser()->getSites(), Response::HTTP_OK, [], [
+        return $this->json($this->security->getUser()->getSites() ?? [], Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]
+        ]);
+    }
+
+    #[Areas(['user'])]
+    #[Route(path: ['', '/{id}'], methods: 'GET')]
+    public function getById(int $id): JsonResponse
+    {
+        return $this->json($this->security
+                    ->getUser()
+                    ->getSites()
+                    ->findFirst(function ($key, $site) use ($id) {
+                        return $site->getId() == $id;
+                    }) ?? [],
+                Response::HTTP_OK,
+                [],
+                [
+                    'groups' => [APIEnum::GROUP_NAME_SHOW->value]
         ]);
     }
 
@@ -153,7 +170,7 @@ class SiteController extends AbstractController
         );
 
         if (count($errors) > 0) {
-            throw new ValidatorException($errors[0]->getPropertyPath() . ' - ' . $errors[0]->getMessage());
+            throw new ValidatorException('Count repeat - ' . $errors[0]->getMessage());
         }
 
         if (!$entity->isSend()) {

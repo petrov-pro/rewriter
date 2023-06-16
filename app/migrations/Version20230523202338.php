@@ -1,7 +1,5 @@
 <?php
-
 declare(strict_types=1);
-
 namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -12,6 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20230523202338 extends AbstractMigration
 {
+
     public function getDescription(): string
     {
         return '';
@@ -32,9 +31,10 @@ final class Version20230523202338 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_7D3656A49395C3F3 ON account (customer_id)');
         $this->addSql('CREATE TABLE apitoken (id INT NOT NULL, customer_id INT NOT NULL, token TEXT NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, is_valid BOOLEAN NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_23E5A7D39395C3F3 ON apitoken (customer_id)');
-        $this->addSql('CREATE TABLE billing (id INT NOT NULL, customer_id INT NOT NULL, account_id INT NOT NULL, sum BIGINT NOT NULL, type VARCHAR(15) NOT NULL, system VARCHAR(20) NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE billing (id INT NOT NULL, customer_id INT NOT NULL, account_id INT NOT NULL, sum BIGINT NOT NULL, transaction_id VARCHAR(255), type VARCHAR(15) NOT NULL, system VARCHAR(20) NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_EC224CAA9395C3F3 ON billing (customer_id)');
         $this->addSql('CREATE INDEX IDX_EC224CAA9B6B5FBA ON billing (account_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_manual_transaction ON billing (transaction_id)');
         $this->addSql('CREATE TABLE context (id INT NOT NULL, source_url TEXT NOT NULL, image_url TEXT DEFAULT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, text TEXT DEFAULT NULL, lang VARCHAR(2) NOT NULL, source_name VARCHAR(255) NOT NULL, date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, sentiment VARCHAR(255) DEFAULT NULL, category TEXT DEFAULT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(10) NOT NULL, provider VARCHAR(255) NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_E25D857E5FA9FB052B36786B ON context (source_name, title)');
         $this->addSql('COMMENT ON COLUMN context.category IS \'(DC2Type:simple_array)\'');
@@ -46,7 +46,7 @@ final class Version20230523202338 extends AbstractMigration
         $this->addSql('COMMENT ON COLUMN image.data IS \'(DC2Type:simple_array)\'');
         $this->addSql('CREATE TABLE "site" (id INT NOT NULL, customer_id INT NOT NULL, url TEXT NOT NULL, is_valid BOOLEAN NOT NULL, setting JSON DEFAULT NULL, type VARCHAR(255) NOT NULL, html_tag VARCHAR(255) DEFAULT NULL, is_image BOOLEAN NOT NULL, category TEXT NOT NULL, lang TEXT NOT NULL, is_send BOOLEAN NOT NULL, update_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, count_repeat INT DEFAULT NULL, fetch_content VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_694309E49395C3F3 ON "site" (customer_id)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_694309E4F47645AE ON "site" (url)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_694309E4F47645AE ON "site" (customer_id, url)');
         $this->addSql('COMMENT ON COLUMN "site".category IS \'(DC2Type:simple_array)\'');
         $this->addSql('COMMENT ON COLUMN "site".lang IS \'(DC2Type:simple_array)\'');
         $this->addSql('COMMENT ON COLUMN "site".update_at IS \'(DC2Type:datetime_immutable)\'');

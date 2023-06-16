@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\DTO\ErrorDTO;
 use App\Exception\NotFoundException;
 use App\Util\APIEnum;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use InvalidArgumentException;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,6 +23,7 @@ class ExceptionController
             NotFoundException::class => $exception->getMessage(),
             NotNormalizableValueException::class => $exception->getMessage(),
             InvalidArgumentException::class => $exception->getMessage(),
+            UniqueConstraintViolationException::class => 'Found duplicate',
             default => $exception->getStatusText()
         };
 

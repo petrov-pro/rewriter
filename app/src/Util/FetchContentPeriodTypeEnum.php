@@ -22,6 +22,6 @@ enum FetchContentPeriodTypeEnum: string
 
     public static function getArray(): array
     {
-        return array_column(AITypeEnum::cases(), 'value');
+        return array_column(self::cases(), 'value');
     }
 }

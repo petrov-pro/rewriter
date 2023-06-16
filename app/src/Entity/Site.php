@@ -19,8 +19,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SiteRepository::class)]
 #[ORM\Table(name: '`site`')]
-#[UniqueConstraint(columns: ['url'])]
-#[UniqueEntity('url')]
+#[UniqueConstraint(columns: ['customer_id', 'url'])]
+#[UniqueEntity(fields: ['customer', 'url'])]
 class Site
 {
 

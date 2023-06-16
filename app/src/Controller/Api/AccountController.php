@@ -7,9 +7,12 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\AccountService;
 use App\Util\APIEnum;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use InvalidArgumentException;
+use Nelmio\ApiDocBundle\Annotation\Areas;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +20,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Nelmio\ApiDocBundle\Annotation\Areas;
 
 #[OA\Tag(name: 'Account')]
 #[OA\Response(
@@ -35,7 +37,8 @@ class AccountController extends AbstractController
     public function __construct(
         private Security $security,
         private AccountService $accountService,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private LoggerInterface $logger
     )
     {
         
@@ -64,8 +67,14 @@ class AccountController extends AbstractController
     #[Route(path: ['', '/billing'], methods: Request::METHOD_GET)]
     public function billing(): JsonResponse
     {
-        return $this->json($this->security->getUser()->getBillings(), Response::HTTP_OK, [], [
-                'groups' => [APIEnum::GROUP_NAME_SHOW->value]
+        return $this->json($this->security
+                    ->getUser()
+                    ->getBillings()
+                    ->slice(0, 100),
+                Response::HTTP_OK,
+                [],
+                [
+                    'groups' => [APIEnum::GROUP_NAME_SHOW->value]
         ]);
     }
 
@@ -84,8 +93,12 @@ class AccountController extends AbstractController
                     type: 'string'
                 ),
                 new OA\Property(
-                    property: 'deposit',
+                    property: 'amount',
                     type: 'int'
+                ),
+                new OA\Property(
+                    property: 'transaction_id',
+                    type: 'string'
                 )
                 ]
             )
@@ -94,9 +107,28 @@ class AccountController extends AbstractController
     #[Route(path: ['', '/'], methods: Request::METHOD_PUT)]
     public function update(Request $request): JsonResponse
     {
-        $user = $this->userRepository->findByEmail($request->get('email'));
-        $deposit = $request->get('deposit') ?? throw new InvalidArgumentException('Miss field deposit');
-        $this->accountService->deposit($deposit, $user->getId(), true);
+        $user = $this->userRepository->findByEmail($request->get('email') ?? throw new InvalidArgumentException('Miss field email'));
+        $amount = $request->get('amount') ?? throw new InvalidArgumentException('Miss field amount');
+        $transactionId = $request->get('transaction_id') ?? throw new InvalidArgumentException('Miss field transaction_id');
+
+        try {
+            if ($amount > 0) {
+                $this->accountService->deposit($amount, $user->getId(), true, $transactionId);
+            } elseif ($amount < 0) {
+                $withdraw = abs($amount) * AccountService::DIMENSION_TOKEN;
+                if (!$this->accountService->isEnoughBalance(
+                        $user->getId(),
+                        $withdraw
+                    )
+                ) {
+                    throw new \InvalidArgumentException('Not enough balance.');
+                }
+                $this->accountService->withdraw($withdraw, $user->getId(), true, $transactionId);
+            }
+        } catch (UniqueConstraintViolationException $ex) {
+            //catch duplicate
+            $this->logger->warning('Duplicate transaction: ' . $transactionId);
+        }
 
         return $this->json($user, Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]

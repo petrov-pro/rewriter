@@ -65,7 +65,7 @@ class TokenController extends AbstractController
         }
 
         $term = (int) $request->get('term', 1);
-        $user = $this->userRepository->addApiToken($user, $term);
+        $user->addQuickAPIToken($term);
         $this->userRepository->save($user, true);
 
         return $this->json($user, Response::HTTP_OK, [], [
