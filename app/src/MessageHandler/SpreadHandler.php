@@ -16,7 +16,8 @@ class SpreadHandler implements HanlderMessageInterface
         private LoggerInterface $logger,
         private SiteRepository $siteRepository,
         private SpreadProviderFactory $spreadProviderFactory,
-        private ContextRepository $contextRepository
+        private ContextRepository $contextRepository,
+        private bool $needCreateImage,
     )
     {
         
@@ -47,7 +48,7 @@ class SpreadHandler implements HanlderMessageInterface
 
         $context = $this->contextRepository->findByIdLang($message->getId(), $site->getId(), $message->getLang());
 
-        if ($site->isImage() && $context->getImages()->isEmpty()) {
+        if ($this->needCreateImage && $site->isImage() && $context->getImages()->isEmpty()) {
             throw new \Exception('Should wait, not found image for site: ' . $site->getId());
         }
 

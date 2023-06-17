@@ -8,6 +8,7 @@ use App\Messenger\Stamp\LoopCount;
 use App\Repository\SiteRepository;
 use App\Repository\TranslateRepository;
 use App\Repository\UserRepository;
+use App\Util\FetchContentPeriodTypeEnum;
 use DateInterval;
 use DateTimeImmutable;
 use Nette\Utils\Arrays;
@@ -100,7 +101,7 @@ class OrderHandler implements HanlderMessageInterface
 
     private function canOrder(Site $site): bool
     {
-        if (!$site->getFetchContent()) {
+        if (!$site->getFetchContent() || $site->getFetchContent() === FetchContentPeriodTypeEnum::ALWAYS->value) {
             return true;
         }
 

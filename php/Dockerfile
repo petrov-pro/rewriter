@@ -1,6 +1,5 @@
 FROM php:8.2-fpm
-ARG NEW_RELIC_KEY
-ENV NEW_RELIC_KEY=${NEW_RELIC_KEY}
+
 
 # Обновляем и устанавливаем необходимые пакеты
 RUN apt-get update && apt-get install -y \
@@ -50,24 +49,6 @@ RUN touch /var/log/cron.log
 
 COPY ./supervisor/messenger-worker.conf /etc/supervisor/supervisord.conf
 
-
-RUN \
-  curl -L https://download.newrelic.com/php_agent/release/newrelic-php5-10.9.0.324-linux.tar.gz | tar -C /tmp -zx && \
-  export NR_INSTALL_USE_CP_NOT_LN=1 && \
-  export NR_INSTALL_SILENT=1 && \
-  /tmp/newrelic-php5-*/newrelic-install install && \
-  rm -rf /tmp/newrelic-php5-* /tmp/nrinstall* && \
-  sed -i \
-      -e "s/REPLACE_WITH_REAL_KEY/${NEW_RELIC_KEY}/" \
-      -e 's/newrelic.appname = "PHP Application"/newrelic.appname = "Rewriter"/' \
-      -e 's/;newrelic.daemon.app_connect_timeout =.*/newrelic.daemon.app_connect_timeout=15s/' \
-      -e 's/;newrelic.daemon.start_timeout =.*/newrelic.daemon.start_timeout=5s/' \
-      -e 's/;newrelic.application_logging.enabled = true/newrelic.application_logging.enabled = true/' \
-      -e 's/;newrelic.application_logging.metrics.enabled = true/newrelic.application_logging.metrics.enabled = true/' \
-      -e 's/;newrelic.application_logging.forwarding.enabled = true/newrelic.application_logging.forwarding.enabled = true/' \
-      -e 's/;newrelic.application_logging.forwarding.log_level = "WARNING"/newrelic.application_logging.forwarding.log_level = "DEBUG"/' \
-      /usr/local/etc/php/conf.d/newrelic.ini
-
 COPY ./app /var/www/html
 
 # Назначаем рабочую директорию и пользователя www-data
@@ -77,7 +58,6 @@ RUN composer clearcache \
     && composer install \
     && composer dumpautoload -o
 
-RUN chown -R www-data:www-data /var/log/newrelic/
 RUN chown -R www-data:www-data /var/www/html
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www
 
