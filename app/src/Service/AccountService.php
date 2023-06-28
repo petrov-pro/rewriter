@@ -7,6 +7,7 @@ use App\Exception\NotFoundException;
 use App\Repository\AccountRepository;
 use App\Repository\UserRepository;
 use DateTime;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 
 class AccountService
@@ -18,7 +19,8 @@ class AccountService
 
     public function __construct(
         private AccountRepository $accountRepository,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private LoggerInterface $logger
     )
     {
         
@@ -31,7 +33,7 @@ class AccountService
         return (($account->getBalance() - $price) >= self::MIN_BALANCE);
     }
 
-    public function withdraw(int $amount, int $customerId, bool $flush = false, string $transactionId = ''): Account
+    public function withdraw(int $amount, int $customerId, bool $flush = false, string $typeEntity = Billing::SYSTEM, int $entityId = null, string $transactionId = ''): Account
     {
         if (!$transactionId) {
             $transactionId = $this->generateTransactionId($customerId);
@@ -39,19 +41,30 @@ class AccountService
 
         $account = $this->findAccount($customerId);
 
+        $currentAccount = $account->getBalance();
         $account->setBalance(
-            $account->getBalance() - $amount
+            $currentAccount - $amount
         )->addBilling(
             (new Billing())
                 ->setSum($amount)
                 ->setType(Billing::TYPE_WITHDRAW)
                 ->setTransactionId($transactionId)
-                ->setSystem(Billing::TYPE_WITHDRAW)
+                ->setSystem($typeEntity)
+                ->setEntityId($entityId)
                 ->setDate(new DateTime('now'))
                 ->setCustomer($this->userRepository->findOrThrow($customerId))
         );
 
         $this->accountRepository->save($account, $flush);
+
+        $this->logger->info('Account', [
+            'operation' => __METHOD__,
+            'customer_id' => $customerId,
+            'balance_before' => $currentAccount,
+            'balance_current' => $account->getBalance(),
+            'amount' => $amount,
+            'transactionId' => $transactionId
+        ]);
 
         return $account;
     }
@@ -106,6 +119,7 @@ class AccountService
         }
         $amount = $amount * self::DIMENSION_TOKEN;
         $account = $this->findAccount($customerId);
+        $currentAccount = $account->getBalance();
         $account->addBalance($amount)
             ->addBilling((new Billing())
                 ->setCustomer($account->getCustomer())
@@ -117,6 +131,15 @@ class AccountService
         );
 
         $this->accountRepository->save($account, $flush);
+
+        $this->logger->info('Account', [
+            'operation' => __METHOD__,
+            'customer_id' => $customerId,
+            'balance_before' => $currentAccount,
+            'balance_current' => $account->getBalance(),
+            'amount' => $amount,
+            'transactionId' => $transactionId
+        ]);
 
         return $account;
     }

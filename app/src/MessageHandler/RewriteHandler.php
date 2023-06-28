@@ -1,6 +1,7 @@
 <?php
 namespace App\MessageHandler;
 
+use App\Entity\Billing;
 use App\MessageHandler\Message\ContextInterface;
 use App\Messenger\LoopMessageInterface;
 use App\Messenger\Trait\LoopTrait;
@@ -151,7 +152,9 @@ class RewriteHandler implements HanlderMessageInterface, LoopMessageInterface
                 $token
             ),
             $message->getUserId(),
-            true
+            true,
+            Billing::SYSTEM_REWRITE,
+            $message->getId()
         );
 
         return $message->setTitle($textTitle->getText())

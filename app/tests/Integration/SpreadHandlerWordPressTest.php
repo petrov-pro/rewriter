@@ -86,7 +86,7 @@ class SpreadHandlerWordPressTest extends KernelTestCase
                 ['Site has disable option is_sent: 1']
         );
 
-        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock);
+        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock, false);
         $handler->handle($messageMock);
     }
 
@@ -151,7 +151,7 @@ class SpreadHandlerWordPressTest extends KernelTestCase
                 ['Spread finished.']
         );
 
-        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock);
+        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock, false);
         $handler->handle($messageMock);
     }
 
@@ -212,7 +212,7 @@ class SpreadHandlerWordPressTest extends KernelTestCase
                 ['Spread finished.']
         );
 
-        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock);
+        $handler = new SpreadHandler($this->loggerMock, $this->siteRepositoryMock, $this->spreadProviderFactory, $this->contextRepositoryMock, false);
         $handler->handle($messageMock);
     }
 }

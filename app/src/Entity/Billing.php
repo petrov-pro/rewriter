@@ -18,6 +18,9 @@ class Billing
     public const TYPE_MODIFY = 'modify';
     public const TYPE_WITHDRAW = 'withdraw';
     public const SYSTEM = 'system';
+    public const SYSTEM_IMAGE = 'image';
+    public const SYSTEM_KEYWORD = 'keyword';
+    public const SYSTEM_REWRITE = 'rewrite';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -51,6 +54,9 @@ class Billing
     #[Groups([APIEnum::GROUP_NAME_SHOW->value])]
     #[ORM\Column(length: 255)]
     private ?string $transaction_id = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $entity_id = null;
 
     public function getId(): ?int
     {
@@ -137,6 +143,18 @@ class Billing
     public function setTransactionId(string $transaction_id): self
     {
         $this->transaction_id = $transaction_id;
+
+        return $this;
+    }
+
+    public function getEntityId(): ?int
+    {
+        return $this->entity_id;
+    }
+
+    public function setEntityId(?int $entity_id): self
+    {
+        $this->entity_id = $entity_id;
 
         return $this;
     }

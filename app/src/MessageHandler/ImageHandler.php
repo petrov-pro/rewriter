@@ -1,6 +1,7 @@
 <?php
 namespace App\MessageHandler;
 
+use App\Entity\Billing;
 use App\Entity\Image;
 use App\MessageHandler\Message\ContextInterface;
 use App\Repository\ImageRepository;
@@ -155,7 +156,9 @@ class ImageHandler implements HanlderMessageInterface
                     $this->countImage
                 ),
                 $message->getUserId(),
-                false
+                false,
+                Billing::SYSTEM_IMAGE,
+                $image->getId()
             );
 
             $this->accountService->withdraw(
@@ -164,7 +167,9 @@ class ImageHandler implements HanlderMessageInterface
                     $keywords->getToken()
                 ),
                 $message->getUserId(),
-                true
+                true,
+                Billing::SYSTEM_KEYWORD,
+                $image->getId()
             );
 
             $this->logger->info('Image finished content message',

@@ -123,7 +123,7 @@ class AccountController extends AbstractController
                 ) {
                     throw new \InvalidArgumentException('Not enough balance.');
                 }
-                $this->accountService->withdraw($withdraw, $user->getId(), true, $transactionId);
+                $this->accountService->withdraw($withdraw, $user->getId(), true, Billing::SYSTEM, null, $transactionId);
             }
         } catch (UniqueConstraintViolationException $ex) {
             //catch duplicate
