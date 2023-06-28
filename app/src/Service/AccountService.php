@@ -39,23 +39,32 @@ class AccountService
             $transactionId = $this->generateTransactionId($customerId);
         }
 
-        $account = $this->findAccount($customerId);
+        try {
+            $this->accountRepository->startTransaction();
+            $account = $this->accountRepository->findLockBy($customerId);
 
-        $currentAccount = $account->getBalance();
-        $account->setBalance(
-            $currentAccount - $amount
-        )->addBilling(
-            (new Billing())
-                ->setSum($amount)
-                ->setType(Billing::TYPE_WITHDRAW)
-                ->setTransactionId($transactionId)
-                ->setSystem($typeEntity)
-                ->setEntityId($entityId)
-                ->setDate(new DateTime('now'))
-                ->setCustomer($this->userRepository->findOrThrow($customerId))
-        );
+            $currentAccount = $account->getBalance();
+            $account->setBalance(
+                $currentAccount - $amount
+            )->addBilling(
+                (new Billing())
+                    ->setSum($amount)
+                    ->setType(Billing::TYPE_WITHDRAW)
+                    ->setTransactionId($transactionId)
+                    ->setSystem($typeEntity)
+                    ->setEntityId($entityId)
+                    ->setDate(new DateTime('now'))
+                    ->setCustomer($this->userRepository->findOrThrow($customerId))
+            );
 
-        $this->accountRepository->save($account, $flush);
+            $this->accountRepository->save($account, $flush);
+            if ($flush) {
+                $this->accountRepository->commitTransaction();
+            }
+        } catch (\Exception $ex) {
+            $this->accountRepository->rollbackTransaction();
+            throw $ex;
+        }
 
         $this->logger->info('Account', [
             'operation' => __METHOD__,
@@ -91,23 +100,33 @@ class AccountService
         }
 
         try {
-            $account = $this->findAccount($customerId);
+            $this->accountRepository->startTransaction();
+            $account = $this->accountRepository->findLockBy($customerId);
         } catch (NotFoundException $ex) {
             $account = (new Account())
                 ->setCustomer($this->userRepository->findOrThrow($customerId));
         }
 
-        $account->setBalance($amount)
-            ->addBilling((new Billing())
-                ->setCustomer($account->getCustomer())
-                ->setType(Billing::TYPE_MODIFY)
-                ->setTransactionId($transactionId)
-                ->setSystem(Billing::SYSTEM)
-                ->setDate(new DateTime('now'))
-                ->setSum($amount)
-        );
+        try {
+            $account->setBalance($amount)
+                ->addBilling((new Billing())
+                    ->setCustomer($account->getCustomer())
+                    ->setType(Billing::TYPE_MODIFY)
+                    ->setTransactionId($transactionId)
+                    ->setSystem(Billing::SYSTEM)
+                    ->setDate(new DateTime('now'))
+                    ->setSum($amount)
+            );
 
-        $this->accountRepository->save($account, $flush);
+            $this->accountRepository->save($account, $flush);
+
+            if ($flush) {
+                $this->accountRepository->commitTransaction();
+            }
+        } catch (\Exception $ex) {
+            $this->accountRepository->rollbackTransaction();
+            throw $ex;
+        }
 
         return $account;
     }
@@ -117,20 +136,31 @@ class AccountService
         if (!$transactionId) {
             $transactionId = $this->generateTransactionId($customerId);
         }
-        $amount = $amount * self::DIMENSION_TOKEN;
-        $account = $this->findAccount($customerId);
-        $currentAccount = $account->getBalance();
-        $account->addBalance($amount)
-            ->addBilling((new Billing())
-                ->setCustomer($account->getCustomer())
-                ->setType(Billing::TYPE_DEPOSIT)
-                ->setTransactionId($transactionId)
-                ->setSystem(Billing::SYSTEM)
-                ->setDate(new DateTime('now'))
-                ->setSum($amount)
-        );
 
-        $this->accountRepository->save($account, $flush);
+        try {
+            $this->accountRepository->startTransaction();
+            $account = $this->accountRepository->findLockBy($customerId);
+            $amount = $amount * self::DIMENSION_TOKEN;
+            $currentAccount = $account->getBalance();
+            $account->addBalance($amount)
+                ->addBilling((new Billing())
+                    ->setCustomer($account->getCustomer())
+                    ->setType(Billing::TYPE_DEPOSIT)
+                    ->setTransactionId($transactionId)
+                    ->setSystem(Billing::SYSTEM)
+                    ->setDate(new DateTime('now'))
+                    ->setSum($amount)
+            );
+
+            $this->accountRepository->save($account, $flush);
+
+            if ($flush) {
+                $this->accountRepository->commitTransaction();
+            }
+        } catch (\Exception $ex) {
+            $this->accountRepository->rollbackTransaction();
+            throw $ex;
+        }
 
         $this->logger->info('Account', [
             'operation' => __METHOD__,

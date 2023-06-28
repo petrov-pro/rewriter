@@ -5,6 +5,7 @@ use App\Controller\DTO\ErrorDTO;
 use App\Exception\NotFoundException;
 use App\Util\APIEnum;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\PessimisticLockException;
 use InvalidArgumentException;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +25,7 @@ class ExceptionController
             NotNormalizableValueException::class => $exception->getMessage(),
             InvalidArgumentException::class => $exception->getMessage(),
             UniqueConstraintViolationException::class => 'Found duplicate',
+            PessimisticLockException::class => 'Should repeat request later',
             default => $exception->getStatusText()
         };
 

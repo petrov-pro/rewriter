@@ -1,9 +1,11 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Account;
+use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,6 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class AccountRepository extends ServiceEntityRepository
 {
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Account::class);
@@ -39,28 +42,40 @@ class AccountRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Account[] Returns an array of Account objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findLockBy(int $customerId): Account
+    {
+        $account = $this->createQueryBuilder('a')
+            ->where('a.customer = :customerId')
+            ->setParameter('customerId', $customerId)
+            ->getQuery()
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->getOneOrNullResult();
 
-//    public function findOneBySomeField($value): ?Account
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        if (!$account) {
+            throw new NotFoundException('Not found account for customer: ' . $customerId);
+        }
+
+        return $account;
+    }
+
+    public function startTransaction(): void
+    {
+        if (!$this->getEntityManager()->getConnection()->isTransactionActive()) {
+            $this->getEntityManager()->beginTransaction();
+        }
+    }
+
+    public function commitTransaction(): void
+    {
+        if ($this->getEntityManager()->getConnection()->isTransactionActive()) {
+            $this->getEntityManager()->commit();
+        }
+    }
+
+    public function rollbackTransaction(): void
+    {
+        if ($this->getEntityManager()->getConnection()->isTransactionActive()) {
+            $this->getEntityManager()->rollback();
+        }
+    }
 }
