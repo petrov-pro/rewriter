@@ -64,13 +64,15 @@ class ContextController extends AbstractController
         $limit = $request->query->get('limit') ?? 10;
         $source = $request->query->get('source') ?? '';
         $siteId = $request->query->get('site_id') ?? 0;
+        $userId = $this->security->getUser()->getId();
 
-        $contexts = $this->cache->get(Helper::generateHash(__METHOD__, $request->query->all()), function (ItemInterface $item) use ($repository, $page, $limit, $source, $siteId) {
-            $item->expiresAfter((int) APIEnum::CACHE_LIVE->value);
-            $item->tag([APIEnum::CACHE_TAG->value, APIEnum::CACHE_TAG_USER->value . $this->security->getUser()->getId()]);
+        $contexts = $this->cache->get(Helper::generateHash(__METHOD__, array_merge($request->query->all(), ['user_id' => $userId])),
+            function (ItemInterface $item) use ($repository, $page, $limit, $source, $siteId, $userId) {
+                $item->expiresAfter((int) APIEnum::CACHE_LIVE->value);
+                $item->tag([APIEnum::CACHE_TAG->value, APIEnum::CACHE_TAG_USER->value . $this->security->getUser()->getId()]);
 
-            return $repository->findPublicContext($this->security->getUser()->getId(), $page, $limit, $source, $siteId);
-        });
+                return $repository->findPublicContext($userId, $page, $limit, $source, $siteId);
+            });
 
         return $this->json($contexts, Response::HTTP_OK, [], [
                 'groups' => [APIEnum::GROUP_NAME_SHOW->value]
