@@ -5,7 +5,7 @@ use App\Entity\Account;
 use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -49,6 +49,7 @@ class AccountRepository extends ServiceEntityRepository
             ->setParameter('customerId', $customerId)
             ->getQuery()
             ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->setHint(Query::HINT_REFRESH, true)
             ->getOneOrNullResult();
 
         if (!$account) {

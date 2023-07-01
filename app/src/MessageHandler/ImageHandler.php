@@ -156,7 +156,7 @@ class ImageHandler implements HanlderMessageInterface
                     $this->countImage
                 ),
                 $message->getUserId(),
-                false,
+                true,
                 Billing::SYSTEM_IMAGE,
                 $image->getId()
             );
