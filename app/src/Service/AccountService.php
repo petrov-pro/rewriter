@@ -5,6 +5,7 @@ use App\Entity\Account;
 use App\Entity\Billing;
 use App\Exception\NotFoundException;
 use App\Repository\AccountRepository;
+use App\Repository\BillingRepository;
 use App\Repository\UserRepository;
 use DateTime;
 use Psr\Log\LoggerInterface;
@@ -20,6 +21,7 @@ class AccountService
     public function __construct(
         private AccountRepository $accountRepository,
         private UserRepository $userRepository,
+        private BillingRepository $billingRepository,
         private LoggerInterface $logger
     )
     {
@@ -37,6 +39,11 @@ class AccountService
     {
         if (!$transactionId) {
             $transactionId = $this->generateTransactionId($customerId);
+        } else {
+            $transaction = $this->billingRepository->findOneBy(['transaction_id' => $transactionId]);
+            if ($transaction) {
+                return $this->findAccount($customerId);
+            }
         }
 
         try {

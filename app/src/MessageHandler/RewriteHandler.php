@@ -12,6 +12,7 @@ use App\Service\AI\TooMuchTokenException;
 use App\Service\ContextService;
 use App\Util\AITypeEnum;
 use App\Util\APIEnum;
+use App\Util\Helper;
 use App\Util\TypeDataEnum;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -154,7 +155,15 @@ class RewriteHandler implements HanlderMessageInterface, LoopMessageInterface
             $message->getUserId(),
             true,
             Billing::SYSTEM_REWRITE,
-            $message->getId()
+            $message->getId(),
+            Helper::generateHashBy([
+                $message->getId(),
+                $message->getUserId(),
+                $message->getSiteId(),
+                Billing::SYSTEM_REWRITE,
+                $token,
+                $textDescription->getText()
+            ])
         );
 
         return $message->setTitle($textTitle->getText())

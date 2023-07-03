@@ -13,6 +13,7 @@ use App\Service\ContextProvider\Providers\CryptoNewsService;
 use App\Service\ContextService;
 use App\Util\APIEnum;
 use App\Util\DefaultSafeKeywordEnum;
+use App\Util\Helper;
 use App\Util\NormalizeText;
 use App\Util\TypeDataEnum;
 use Exception;
@@ -158,7 +159,15 @@ class ImageHandler implements HanlderMessageInterface
                 $message->getUserId(),
                 true,
                 Billing::SYSTEM_IMAGE,
-                $image->getId()
+                $image->getId(),
+                Helper::generateHashBy([
+                    $message->getId(),
+                    $message->getUserId(),
+                    $message->getSiteId(),
+                    $image->getId(),
+                    $keywords->getText(),
+                    Billing::SYSTEM_IMAGE
+                ])
             );
 
             $this->accountService->withdraw(
@@ -169,7 +178,15 @@ class ImageHandler implements HanlderMessageInterface
                 $message->getUserId(),
                 true,
                 Billing::SYSTEM_KEYWORD,
-                $image->getId()
+                $image->getId(),
+                Helper::generateHashBy([
+                    $message->getId(),
+                    $message->getUserId(),
+                    $message->getSiteId(),
+                    $image->getId(),
+                    $keywords->getText(),
+                    Billing::SYSTEM_KEYWORD
+                ])
             );
 
             $this->logger->info('Image finished content message',

@@ -13,4 +13,9 @@ final class Helper
     {
         return md5($email . time() . time());
     }
+
+    public static function generateHashBy(array $params): string
+    {
+        return md5(serialize($params));
+    }
 }
