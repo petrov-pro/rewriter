@@ -10,8 +10,8 @@ Stack: *PHP, RabbitMq, Symfony, PostgreSQL*
 
 ## DB
 
-./bin/console doctrine:migrations:migrate
-./bin/console app:user --admin
+1. ./bin/console doctrine:migrations:migrate
+2. ./bin/console app:user --admin
 
 
 ## Deploy
